@@ -144,7 +144,6 @@ CC := g++
 else # USE_CPP != on
 CC := gcc
 endif # USE_CPP == on
-LD := ld
 
 # Search all source files in the project
 SRC_FILES += $(foreach SRC_DIRS,$(SRC_DIRS),$(wildcard $(SRC_DIRS)/*.c))
@@ -167,7 +166,7 @@ vpath %.o $(TOOL_DIR)/bin/obj
 # Parsing file names in the project
 OBJ_NAMES := $(notdir $(SRC_FILES:%.c=%.o))
 ifeq ($(USE_CPP),on)
-OBJ_NAMES += $(notdir $(SRC_FILES:%.cpp=%.o))
+OBJ_NAMES := $(notdir $(OBJ_NAMES:%.cpp=%.o))
 endif # USE_CPP == on
 OBJ_FILES += $(addprefix $(OUT_DIR)/,$(OBJ_NAMES))
 OBJ_NAMES := $(notdir $(OBJ_FILES))
@@ -180,7 +179,7 @@ USER_DEFS   +=  -D UTEST_SUPPORT \
 			    -D UT_SETVAR_SUPPORT \
                 -D "OUTPATH=\"$(REPORT_RAW)\"" \
                 -D "USER_NAME=\"$(USER_NAME)\"" \
-                -D "PROJ_NAME=\"$(subst /,&ensp;/&ensp;,$(PROJ_NAME))\""
+                -D "PROJ_NAME=\"$(PROJ_NAME)\""
 
 # Add compiler flags (if any)
 CCFLAGS += -c -g -Wall $(MASK_INC_DIRS) $(USER_DEFS)
@@ -238,7 +237,7 @@ $(SHARE_DIR) $(OUT_DIR):
 #
 merge: _s_merge $(OUT_DIR) $(OBJ_NAMES)
 	@$(ECHO) "$(BLUE)> $(RCOLOR)Merging to $(OUT_DIR)/$(PROJ_RAW_NAME).o"
-	@$(LD) $(LDFLAGS) $(OBJ_FILES) -o $(OUT_DIR)/$(PROJ_RAW_NAME).o
+	@$(CC) $(LDFLAGS) $(OBJ_FILES) -o $(OUT_DIR)/$(PROJ_RAW_NAME).o
 	@$(call mac_end_process,merge)
 
 _s_merge: check
