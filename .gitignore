@@ -2,7 +2,7 @@
 *.d
 
 # Object files
-*.o
+# *.o
 *.ko
 *.obj
 *.elf
@@ -50,3 +50,11 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# Other path
+.vscode/
+out/
+project/test/
+project/tools/
+project/*/doc/*.html
+project/*/doc/*.css
