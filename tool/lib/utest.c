@@ -23,12 +23,12 @@ static char *sfile = NULL;
 
 static char sfail[1001] = "";
 
-void ut_init(char *file)
+void ut_init(const char file[])
 {
-    sfile = file;
+    sfile = (char *)file;
 }
 
-void ut_setvar_s(uint_t index, char *varname, char *value)
+void ut_setvar_s(uint_t index, const char varname[], const char value[])
 {
     FILE * f = fopen(sfile, "a");
 
@@ -45,7 +45,7 @@ void ut_setvar_s(uint_t index, char *varname, char *value)
     fclose(f);
 }
 
-void ut_setvar(uint_t index, char *varname, uint_t value)
+void ut_setvar(uint_t index, const char varname[], uint_t value)
 {
     char buff[11] = "";
 
