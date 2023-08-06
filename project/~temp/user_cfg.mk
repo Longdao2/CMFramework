@@ -15,7 +15,7 @@
 USE_CPP := off
 
 # Run with time out (seconds)
-RUN_TIMEOUT := 1.0s
+RUN_TIMEOUT := 30s
 
 # Run with CCOV report (on/off)
 RUN_CCOV := off
@@ -24,16 +24,13 @@ RUN_CCOV := off
 DEV_DIR := $(PROJ_DIR)/dev
 
 # Declare all paths to source files (.c .cpp .o) here
-SRC_DIRS := $(PROJ_DIR)/src \
-            $(PROJ_DIR)/dev \
-            $(TOOL_DIR)/lib
+SRC_DIRS := $(PROJ_DIR)/src
 
 # Note: any of the files below shall not be in SRC_DIRS
 SRC_FILES := 
 
 # Declare all paths to header files (.h) here
-INC_DIRS := $(PROJ_DIR)/inc \
-            $(TOOL_DIR)/lib
+INC_DIRS := $(PROJ_DIR)/inc
 
 # Add arguments for the executable to run (if any)
 VAR_ARGS := 
