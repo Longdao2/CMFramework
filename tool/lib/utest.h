@@ -76,9 +76,9 @@ extern "C" {
 
 #else /* #ifdef UTEST_SUPPORT */
 
-void ut_init(char *file);
-void ut_setvar_s(uint_t index, char *varname, char *value);
-void ut_setvar(uint_t index, char *varname, uint_t value);
+void ut_init(const char file[]);
+void ut_setvar_s(uint_t index, const char varname[], const char value[]);
+void ut_setvar(uint_t index, const char varname[], uint_t value);
 void ut_addfail(uint_t line);
 char *ut_getfail(void);
 void ut_resetfail(void);
@@ -99,7 +99,7 @@ typedef struct
 /* ======================================================================== */
 
 #define UT_AddTest(name_test, brief) \
-    (UT_TestCase_t){name_test, #name_test, #brief},
+    (UT_TestCase_t){name_test, (char *)#name_test, (char *)#brief},
 
 /* ======================================================================== */
 
