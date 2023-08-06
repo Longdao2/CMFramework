@@ -28,7 +28,7 @@ EXTERNAL_CONSOLE := false
 #---------------------------------------------------------------------------------#
 
 # Path to your project (start at ALL_PROJ_DIR)
-PROJ_NAME := a
+PROJ_NAME := ~temp
 
 # Set bash as default console to run commands
 SHELL = bash
@@ -72,9 +72,15 @@ DOC_DIR 		:= $(PROJ_DIR)/doc
 PROJ_RAW_NAME   := $(notdir $(PROJ_NAME:%/=%))
 MASK_PROJ_NAME  := PROJ_NAME
 
+# Broken if the template project no longer exists
+ifeq ("$(wildcard $(TEMP_DIR)/user_cfg.mk)","")
+$(error Serious! Template project no longer exists, this framework is broken)
+endif
+
 # If the project directory is empty, should be "./path/to/project"
 ifeq ("$(wildcard $(PROJ_DIR)/user_cfg.mk)","")
-$(error Project [$(PROJ_NAME)] dose not exist)
+NOTHING := $(shell $(MAKE) PROJ_NAME=$(TEMP_NAME) move.$(TEMP_NAME))
+$(error Project [$(PROJ_NAME)] has ceased to exist. So it was brought back to the template project)
 endif
 
 include $(PROJ_DIR)/user_cfg.mk
@@ -84,7 +90,7 @@ REPORT_RAW      := $(OUT_DIR)/$(PROJ_RAW_NAME).ret
 REPORT_HTML     := $(DOC_DIR)/$(PROJ_RAW_NAME).html
 CCOV_HTML       := $(DOC_DIR)/$(PROJ_RAW_NAME)_ccov.html
 
-.PHONY: setup all clean build run merge report status pack vsinit \
+.PHONY: setup all clean build run merge report status pack vsinit check \
         move.% remove.% import.% list print.%
 
 all: clean build run
@@ -390,7 +396,7 @@ print.%:
 
 check:
 	$(if $(filter $(PROJ_NAME),$(TEMP_NAME)), \
-	$(error You cannot perform this operation on the template project. Please create or move to another project))
+	$(error Some features are limited on template project. Please create or move to another project))
 	@:
 
 #---------------------------------------------------------------------------------#
