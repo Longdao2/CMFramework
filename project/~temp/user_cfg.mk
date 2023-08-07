@@ -8,17 +8,24 @@
 #=================================================================================#
 
 #---------------------------------------------------------------------------------#
-#                                  Initialization                                 #
+#                                     Setting                                     #
 #---------------------------------------------------------------------------------#
+
+# Your full name to show in the terminal and test report
+USER_NAME := Your Full Name
 
 # Using C++ programming language in the project (on/off)
 USE_CPP := off
 
 # Run with time out (seconds)
-RUN_TIMEOUT := 30s
+RUN_TIMEOUT := 30.0s
 
 # Run with CCOV report (on/off)
 RUN_CCOV := off
+
+#---------------------------------------------------------------------------------#
+#                                Paths and options                                #
+#---------------------------------------------------------------------------------#
 
 # Declare path to development files here
 DEV_DIR := $(PROJ_DIR)/dev
@@ -41,6 +48,16 @@ USER_DEFS :=
 # Add compiler and linker flags (if any)
 CCFLAGS := 
 LDFLAGS := 
+
+#---------------------------------------------------------------------------------#
+#                                   VSCode Debug                                  #
+#---------------------------------------------------------------------------------#
+
+# Set default breakpoint at the beginning of main function (true/false)
+STOP_AT_ENTRY := true
+
+# Allows the interface to be displayed on an external console window (true/false)
+EXTERNAL_CONSOLE := false
 
 #---------------------------------------------------------------------------------#
 #                                   End of file                                   #
