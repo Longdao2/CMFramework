@@ -9,21 +9,6 @@
 #=================================================================================#
 
 #---------------------------------------------------------------------------------#
-#                                     Setting                                     #
-#---------------------------------------------------------------------------------#
-
-# Your full name to show in the terminal and test report
-USER_NAME := Your Full Name
-
-# =========================== Value : [true] or [false] ===========================
-
-# Set default breakpoint at the beginning of main function (VSCInit Tool)
-STOP_AT_ENTRY := true
-
-# Allows the interface to be displayed on an external console window (VSCInit Tool)
-EXTERNAL_CONSOLE := false
-
-#---------------------------------------------------------------------------------#
 #                                   Definitions                                   #
 #---------------------------------------------------------------------------------#
 
@@ -48,15 +33,6 @@ RCOLOR    :=  \033[0m
 ZIP :=
 _S1 := "
 _S2 := ,
-
-# Display informations
-ifneq ($(QUIET),on)
-$(info )
-$(info PROJ > $(PROJ_NAME))
-$(info DATE > $(shell date +%Y-%m-%d' '%H:%M:%S))
-$(info USER > $(USER_NAME))
-$(info )
-endif # QUIET != on
 
 # Base paths (start at Framework folder)
 ROOT_DIR        := $(shell pwd | sed -e 's/\/cygdrive\/\(.\)/\1:/')
@@ -84,6 +60,15 @@ $(error Project [$(PROJ_NAME)] has ceased to exist. So it was brought back to th
 endif
 
 include $(PROJ_DIR)/user_cfg.mk
+
+# Display informations
+ifneq ($(QUIET),on)
+$(info )
+$(info PROJ > $(PROJ_NAME))
+$(info DATE > $(shell date +%Y-%m-%d' '%H:%M:%S))
+$(info USER > $(USER_NAME))
+$(info )
+endif # QUIET != on
 
 # Path to test report files
 REPORT_RAW      := $(OUT_DIR)/$(PROJ_RAW_NAME).ret
