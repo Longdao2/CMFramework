@@ -87,7 +87,7 @@ typedef void (*UT_FuncTest_t)(void);
 
 typedef struct
 {
-    UT_FuncTest_t retValue;
+    UT_FuncTest_t func;
     char * nameTest;
     char * brief;
 } UT_TestCase_t;
@@ -158,7 +158,7 @@ typedef struct
         /* Run test and get status */ \
         __ut_test_checker = 1; \
         __ut_start_time = clock(); \
-        __ut_all_tests[index_case].retValue(); \
+        __ut_all_tests[index_case].func(); \
         __ut_end_time = clock(); \
         \
         /* Update status */ \
@@ -166,8 +166,9 @@ typedef struct
         ut_setvar(index_case + 1, "duration", ((uint_t)(__ut_end_time - __ut_start_time) * 1000) / CLOCKS_PER_SEC); \
         \
         /* Display result */ \
-        if (1 == __ut_test_checker) \
+        if (1 == __ut_test_checker) { \
             printf("\033[0;32m> PASS\033[0m\n"); \
+        } \
         else { \
             ut_setvar_s(index_case + 1, "fail", ut_getfail()); \
             printf("\033[0;31m> FAIL\033[0m\n"); \
