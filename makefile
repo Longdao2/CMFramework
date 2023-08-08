@@ -161,18 +161,17 @@ MASK_INC_DIRS := $(addprefix -I ,$(INC_DIRS))
 
 # Definitions for testing
 USER_DEFS   +=  -D UTEST_SUPPORT \
-			    -D UT_SETVAR_SUPPORT \
                 -D "OUTPATH=\"$(REPORT_RAW)\"" \
                 -D "USER_NAME=\"$(USER_NAME)\"" \
                 -D "PROJ_NAME=\"$(PROJ_NAME)\""
 
 # Add compiler flags (if any)
-CCFLAGS += -c -g -Wall $(MASK_INC_DIRS) $(USER_DEFS)
+CCFLAGS += -c -g3 -Wall $(MASK_INC_DIRS) $(USER_DEFS)
 LDFLAGS += -r
 
 ifeq ($(RUN_CCOV), on)
 CCOV_CC += -fprofile-arcs -ftest-coverage
-CCOV_LD += -lgcov --coverage
+CCOV_LD += --coverage
 endif # RUN_CCOV == on
 
 #---------------------------------------------------------------------------------#
