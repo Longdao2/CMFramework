@@ -23,6 +23,9 @@ RUN_TIMEOUT := 30.0s
 # Run with CCOV report (on/off)
 RUN_CCOV := off
 
+# Show command in terminal [not recommended] (on/off)
+SHOW_CMD := off
+
 #---------------------------------------------------------------------------------#
 #                                Paths and options                                #
 #---------------------------------------------------------------------------------#
@@ -30,13 +33,13 @@ RUN_CCOV := off
 # Declare path to development files here
 DEV_DIR := $(PROJ_DIR)/dev
 
-# Declare all paths to source files (.c .cpp .o) here
+# Declare all paths to source files (.c .cpp .cc .o) here
 SRC_DIRS := $(PROJ_DIR)/src
 
 # Note: any of the files below shall not be in SRC_DIRS
 SRC_FILES := 
 
-# Declare all paths to header files (.h) here
+# Declare all paths to header files (.h .hpp .hh) here
 INC_DIRS := $(PROJ_DIR)/inc
 
 # Add arguments for the executable to run (if any)
