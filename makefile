@@ -117,7 +117,7 @@ mac_remove_err    = echo "i [$(TEMP_NAME)]"
 mac_import_err    = echo "ZIP file does not exist"
 
 define mac_build_process
-	$(SC)$(eval CCOVOPTS := $(if $(filter $(notdir $<),$(DEV_DIR)),$(CCOV_CC)))
+	$(eval CCOVOPTS := $(if $(filter $(dir $<),$(DEV_DIR)/),$(CCOV_CC)))
 	$(SC)$(ECHO) "$(GREEN)> $(RCOLOR)Compiling from $<"
 	$(SC)$(CC) $(CCFLAGS) $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g3) $(CCOVOPTS) $< -o $(OUT_DIR)/$@
 endef
