@@ -116,12 +116,10 @@ mac_move_error    = echo "x [$(LOCAL_PROJ_NAME)]"
 mac_remove_err    = echo "i [$(TEMP_NAME)]"
 mac_import_err    = echo "ZIP file does not exist"
 
-mac_ccflag_debug  = $(if $(filter $(subst $(dir $(1)),,$(1)),$(SRC_NODEBUG_FILES)),,-g3)
-
 define mac_build_process
 	$(SC)$(eval CCOVOPTS := $(if $(filter $(notdir $<),$(DEV_DIR)),$(CCOV_CC)))
 	$(SC)$(ECHO) "$(GREEN)> $(RCOLOR)Compiling from $<"
-	$(SC)$(CC) $(CCFLAGS) $(call mac_ccflag_debug,$<) $(CCOVOPTS) $< -o $(OUT_DIR)/$@
+	$(SC)$(CC) $(CCFLAGS) $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g3) $(CCOVOPTS) $< -o $(OUT_DIR)/$@
 endef
 
 #---------------------------------------------------------------------------------#
