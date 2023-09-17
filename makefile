@@ -3,7 +3,7 @@
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
 # Version      1.0.2                                                              #
-# Update       16-09-2023                                                         #
+# Update       17-09-2023                                                         #
 # Copyright    2023 (c) Belongs to Louisvn                                        #
 # Details      Common configuration for all projects                              #
 #=================================================================================#
@@ -116,6 +116,18 @@ mac_move_error    = echo "x [$(LOCAL_PROJ_NAME)]"
 mac_remove_err    = echo "i [$(TEMP_NAME)]"
 mac_import_err    = echo "ZIP file does not exist"
 
+mac_clean_report  = $(foreach base,$(wildcard $(REPORT_HTML) $(DOC_DIR)/$(PROJ_RAW_NAME)_ccov.*), \
+                    $(ECHO) "$(RED)> $(RCOLOR)Removing $(base)" && rm -f $(base);)
+
+mac_gen_ccov_err  = $(ECHO) "$(RED)~ Error: Unable to generate CCOV report $(RCOLOR)"
+mac_gen_ccov      = $(ECHO) "$(GREEN)> $(RCOLOR)Generating ccov report to $(CCOV_HTML)" && \
+                    gcovr --root $(DEV_DIR) --object-directory $(OUT_DIR) --html-details $(CCOV_HTML) || $(mac_gen_ccov_err)
+
+mac_open_report   = if [ -e "$(2)" ] && [ "$(SHOW_REPORT)" = "on" ]; then ( \
+                        $(ECHO) "$(BLUE)> $(RCOLOR)Opening $(1) report in browser" && \
+                        cygstart $(2) || xdg-open $(2) || $(ECHO) "$(RED)~ Error: Cannot open $(2) $(RCOLOR)" \
+                    ) fi
+
 define mac_build_process
 	$(eval CCOVOPTS := $(if $(filter $(dir $<),$(DEV_DIR)/),$(CCOV_CC)))
 	$(SC)$(ECHO) "$(GREEN)> $(RCOLOR)Compiling from $<"
@@ -141,12 +153,12 @@ CC := gcc
 endif # USE_CPP == on
 
 # Search all source files in the project
-SRC_FILES +=  $(foreach SRC_DIRS,$(SRC_DIRS),$(wildcard $(SRC_DIRS)/*.c))
+SRC_FILES += $(foreach SRC_DIR,$(SRC_DIRS),$(wildcard $(SRC_DIR)/*.c))
 ifeq ($(USE_CPP),on)
-SRC_FILES +=  $(foreach SRC_DIRS,$(SRC_DIRS),$(wildcard $(SRC_DIRS)/*.cpp)) \
-              $(foreach SRC_DIRS,$(SRC_DIRS),$(wildcard $(SRC_DIRS)/*.cc))
+SRC_FILES += $(foreach SRC_DIR,$(SRC_DIRS),$(wildcard $(SRC_DIR)/*.cpp)) \
+             $(foreach SRC_DIR,$(SRC_DIRS),$(wildcard $(SRC_DIR)/*.cc))
 endif # USE_CPP == on
-OBJ_FILES :=  $(foreach SRC_DIRS,$(SRC_DIRS),$(wildcard $(SRC_DIRS)/*.o))
+OBJ_FILES := $(foreach SRC_DIR,$(SRC_DIRS),$(wildcard $(SRC_DIR)/*.o))
 
 # List of source code files that do not support debugging
 SRC_NODEBUG_FILES += utest.c
@@ -170,7 +182,6 @@ OBJ_NAMES := $(notdir $(OBJ_NAMES:%.cpp=%.o))
 OBJ_NAMES := $(notdir $(OBJ_NAMES:%.cc=%.o))
 endif # USE_CPP == on
 OBJ_FILES += $(addprefix $(OUT_DIR)/,$(OBJ_NAMES))
-OBJ_NAMES := $(notdir $(OBJ_FILES))
 
 # Add prefix to the directory containing the header file
 MASK_INC_DIRS := $(addprefix -I ,$(INC_DIRS))
@@ -211,8 +222,7 @@ $(TLS_EXE_NAMES): %.exe: %.o
 clean:
 	$(SC)$(call mac_start_process,clean)
 	$(SC)$(ECHO) "$(RED)> $(RCOLOR)Removing $(OUT_DIR)" && rm -r -f $(OUT_DIR)
-	$(SC)$(foreach base,$(wildcard $(REPORT_HTML) $(DOC_DIR)/$(PROJ_RAW_NAME)_ccov.*),\
-	$(ECHO) "$(RED)> $(RCOLOR)Removing $(base)" && rm -f $(base);)
+	$(SC)$(call mac_clean_report)
 	$(SC)$(call mac_end_process,clean)
 
 # =================================================================================
@@ -270,16 +280,22 @@ run: check
 #
 report: check
 	$(SC)$(call mac_start_process,report)
+	$(SC)$(call mac_clean_report)
+ifneq ($(wildcard $(REPORT_RAW)),)
 	$(SC)$(ECHO) "$(GREEN)> $(RCOLOR)Generating test report to $(REPORT_HTML)"
-ifneq ($(RUN_CCOV), on)
-	$(SC)$(TOOL_DIR)/bin/report.exe $(REPORT_RAW) "" $(REPORT_HTML)
-else # RUN_CCOV == on
-	$(SC)$(TOOL_DIR)/bin/report.exe $(REPORT_RAW) $(notdir $(CCOV_HTML)) $(REPORT_HTML)
-	$(SC)$(ECHO) "$(GREEN)> $(RCOLOR)Generating ccov report to $(CCOV_HTML)"
-	$(SC)gcovr --root $(DEV_DIR) --object-directory $(OUT_DIR) --html-details $(CCOV_HTML)
-endif # RUN_CCOV != on
-	$(SC)$(ECHO) "$(BLUE)> $(RCOLOR)Opening test report in browser"
-	$(SC)cygstart $(REPORT_HTML) || xdg-open $(REPORT_HTML)
+    ifeq ($(RUN_CCOV),on)
+		$(SC)$(TOOL_DIR)/bin/report.exe $(REPORT_RAW) $(notdir $(CCOV_HTML)) $(REPORT_HTML)
+		$(SC)$(mac_gen_ccov)
+    else # RUN_CCOV != on
+		$(SC)$(TOOL_DIR)/bin/report.exe $(REPORT_RAW) "" $(REPORT_HTML)
+    endif # RUN_CCOV == on
+	$(SC)$(call mac_open_report,test,$(REPORT_HTML))
+else # wildcard REPORT_RAW
+    ifeq ($(RUN_CCOV),on)
+		$(SC)$(mac_gen_ccov)
+		$(SC)$(call mac_open_report,ccov,$(CCOV_HTML))
+    endif # RUN_CCOV == on
+endif # !wildcard REPORT_RAW
 	$(SC)$(call mac_end_process,report)
 
 # =================================================================================

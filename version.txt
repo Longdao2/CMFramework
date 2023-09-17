@@ -2,7 +2,7 @@
 
 > Brief        GCC C-MAKE FRAMEWORK
 > Version      1.0.2
-> Update       16-09-2023
+> Update       17-09-2023
 > Copyright    2023. Belongs to Louisvn
 
 ====================== MODIFY =====================
