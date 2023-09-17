@@ -23,6 +23,9 @@ RUN_TIMEOUT := 30.0s
 # Run with CCOV report (on/off)
 RUN_CCOV := off
 
+# Show the report to the web browser after it is generated (on/off)
+SHOW_REPORT := off
+
 # Show command in terminal [not recommended] (on/off)
 SHOW_CMD := off
 
