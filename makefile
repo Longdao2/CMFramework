@@ -2,8 +2,8 @@
 # File         makefile                                                           #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.1                                                              #
-# Update       08-06-2023                                                         #
+# Version      1.0.2                                                              #
+# Update       17-09-2023                                                         #
 # Copyright    2023 (c) Belongs to Louisvn                                        #
 # Details      Common configuration for all projects                              #
 #=================================================================================#
@@ -31,8 +31,8 @@ INVERT	  :=  \033[7m
 RCOLOR    :=  \033[0m
 
 ZIP :=
-_S1 := "
-_S2 := ,
+_S1  = "
+_S2  = ,
 
 # Base paths (start at Framework folder)
 ROOT_DIR        := $(shell pwd | sed -e 's/\/cygdrive\/\(.\)/\1:/')
@@ -43,8 +43,8 @@ SHARE_DIR       := $(ROOT_DIR)/share
 TEMP_NAME       := ~temp
 TEMP_DIR        := $(ALL_PROJ_DIR)/$(TEMP_NAME)
 PROJ_DIR        := $(ALL_PROJ_DIR)/$(PROJ_NAME)
-OUT_DIR 		:= $(PROJ_DIR)/out
-DOC_DIR 		:= $(PROJ_DIR)/doc
+OUT_DIR         := $(PROJ_DIR)/out
+DOC_DIR         := $(PROJ_DIR)/doc
 PROJ_RAW_NAME   := $(notdir $(PROJ_NAME:%/=%))
 MASK_PROJ_NAME  := PROJ_NAME
 
@@ -60,6 +60,10 @@ $(error Project [$(PROJ_NAME)] has ceased to exist. So it was brought back to th
 endif
 
 include $(PROJ_DIR)/user_cfg.mk
+
+ifneq ($(SHOW_CMD),on)
+SC = @
+endif # SHOW_CMD != on
 
 # Display informations
 ifneq ($(QUIET),on)
@@ -112,6 +116,24 @@ mac_move_error    = echo "x [$(LOCAL_PROJ_NAME)]"
 mac_remove_err    = echo "i [$(TEMP_NAME)]"
 mac_import_err    = echo "ZIP file does not exist"
 
+mac_clean_report  = $(foreach base,$(wildcard $(REPORT_HTML) $(DOC_DIR)/$(PROJ_RAW_NAME)_ccov.*), \
+                    $(ECHO) "$(RED)> $(RCOLOR)Removing $(base)" && rm -f $(base);)
+
+mac_gen_ccov_err  = $(ECHO) "$(RED)~ Error: Unable to generate CCOV report $(RCOLOR)"
+mac_gen_ccov      = $(ECHO) "$(GREEN)> $(RCOLOR)Generating ccov report to $(CCOV_HTML)" && \
+                    gcovr --root $(DEV_DIR) --object-directory $(OUT_DIR) --html-details $(CCOV_HTML) || $(mac_gen_ccov_err)
+
+mac_open_report   = if [ -e "$(2)" ] && [ "$(SHOW_REPORT)" = "on" ]; then ( \
+                        $(ECHO) "$(BLUE)> $(RCOLOR)Opening $(1) report in browser" && \
+                        cygstart $(2) || xdg-open $(2) || $(ECHO) "$(RED)~ Error: Cannot open $(2) $(RCOLOR)" \
+                    ) fi
+
+define mac_build_process
+	$(eval CCOVOPTS := $(if $(filter $(dir $<),$(DEV_DIR)/),$(CCOV_CC)))
+	$(SC)$(ECHO) "$(GREEN)> $(RCOLOR)Compiling from $<"
+	$(SC)$(CC) $(CCFLAGS) $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g3) $(CCOVOPTS) $< -o $(OUT_DIR)/$@
+endef
+
 #---------------------------------------------------------------------------------#
 #                                     Process                                     #
 #---------------------------------------------------------------------------------#
@@ -131,11 +153,15 @@ CC := gcc
 endif # USE_CPP == on
 
 # Search all source files in the project
-SRC_FILES += $(foreach SRC_DIRS,$(SRC_DIRS),$(wildcard $(SRC_DIRS)/*.c))
+SRC_FILES += $(foreach SRC_DIR,$(SRC_DIRS),$(wildcard $(SRC_DIR)/*.c))
 ifeq ($(USE_CPP),on)
-SRC_FILES += $(foreach SRC_DIRS,$(SRC_DIRS),$(wildcard $(SRC_DIRS)/*.cpp))
+SRC_FILES += $(foreach SRC_DIR,$(SRC_DIRS),$(wildcard $(SRC_DIR)/*.cpp)) \
+             $(foreach SRC_DIR,$(SRC_DIRS),$(wildcard $(SRC_DIR)/*.cc))
 endif # USE_CPP == on
-OBJ_FILES := $(foreach SRC_DIRS,$(SRC_DIRS),$(wildcard $(SRC_DIRS)/*.o))
+OBJ_FILES := $(foreach SRC_DIR,$(SRC_DIRS),$(wildcard $(SRC_DIR)/*.o))
+
+# List of source code files that do not support debugging
+SRC_NODEBUG_FILES += utest.c
 
 # Search all object files in the tool
 TLS_OBJ_FILES := $(wildcard $(TOOL_DIR)/bin/obj/*.o)
@@ -144,6 +170,7 @@ TLS_EXE_NAMES := $(notdir $(TLS_OBJ_FILES:%.o=%.exe))
 vpath %.c $(dir $(SRC_FILES))
 ifeq ($(USE_CPP),on)
 vpath %.cpp $(dir $(SRC_FILES))
+vpath %.cc $(dir $(SRC_FILES))
 endif # USE_CPP == on
 vpath %.o $(dir $(OBJ_FILES))
 vpath %.o $(TOOL_DIR)/bin/obj
@@ -152,9 +179,9 @@ vpath %.o $(TOOL_DIR)/bin/obj
 OBJ_NAMES := $(notdir $(SRC_FILES:%.c=%.o))
 ifeq ($(USE_CPP),on)
 OBJ_NAMES := $(notdir $(OBJ_NAMES:%.cpp=%.o))
+OBJ_NAMES := $(notdir $(OBJ_NAMES:%.cc=%.o))
 endif # USE_CPP == on
 OBJ_FILES += $(addprefix $(OUT_DIR)/,$(OBJ_NAMES))
-OBJ_NAMES := $(notdir $(OBJ_FILES))
 
 # Add prefix to the directory containing the header file
 MASK_INC_DIRS := $(addprefix -I ,$(INC_DIRS))
@@ -166,7 +193,7 @@ USER_DEFS   +=  -D UTEST_SUPPORT \
                 -D "PROJ_NAME=\"$(PROJ_NAME)\""
 
 # Add compiler flags (if any)
-CCFLAGS += -c -g3 -Wall $(MASK_INC_DIRS) $(USER_DEFS)
+CCFLAGS += -c -Wall $(MASK_INC_DIRS) $(USER_DEFS)
 LDFLAGS += -r
 
 ifeq ($(RUN_CCOV), on)
@@ -183,114 +210,113 @@ endif # RUN_CCOV == on
 # Details: Initialize tools that allow certain special features to work
 #
 setup: $(TLS_EXE_NAMES)
-	@$(MAKE) vsinit
+	$(SC)$(MAKE) vsinit
 
 $(TLS_EXE_NAMES): %.exe: %.o
-	@gcc $< -o $(TOOL_DIR)/bin/$@
+	$(SC)gcc $< -o $(TOOL_DIR)/bin/$@
 
 # =================================================================================
 # Command: [make clean]
 # Details: Clean all files in project output
 #
 clean:
-	@$(call mac_start_process,clean)
-	@$(ECHO) "$(RED)> $(RCOLOR)Removing $(OUT_DIR)" && rm -r -f $(OUT_DIR)
-	@$(foreach base,$(wildcard $(REPORT_HTML) $(DOC_DIR)/$(PROJ_RAW_NAME)_ccov.*),\
-	$(ECHO) "$(RED)> $(RCOLOR)Removing $(base)" && rm -f $(base);)
-	@$(call mac_end_process,clean)
+	$(SC)$(call mac_start_process,clean)
+	$(SC)$(ECHO) "$(RED)> $(RCOLOR)Removing $(OUT_DIR)" && rm -r -f $(OUT_DIR)
+	$(SC)$(call mac_clean_report)
+	$(SC)$(call mac_end_process,clean)
 
 # =================================================================================
 # Command: [make build]
 # Details: Compile all source files in project
 #
 build: _s_build $(OUT_DIR) $(OBJ_NAMES)
-	@$(ECHO) "$(BLUE)> $(RCOLOR)Linking to $(OUT_DIR)/$(PROJ_RAW_NAME).exe"
-	@$(CC) $(CCOV_LD) $(OBJ_FILES) -o $(OUT_DIR)/$(PROJ_RAW_NAME).exe
-	@$(call mac_end_process,build)
+	$(SC)$(ECHO) "$(BLUE)> $(RCOLOR)Linking to $(OUT_DIR)/$(PROJ_RAW_NAME).exe"
+	$(SC)$(CC) $(CCOV_LD) $(OBJ_FILES) -o $(OUT_DIR)/$(PROJ_RAW_NAME).exe
+	$(SC)$(call mac_end_process,build)
 
 _s_build: check
-	@$(call mac_start_process,build)
+	$(SC)$(call mac_start_process,build)
 
 $(SHARE_DIR) $(OUT_DIR):
-	@$(ECHO) "$(RED)> $(RCOLOR)Adding $@"
-	@mkdir -p $@
+	$(SC)$(ECHO) "$(RED)> $(RCOLOR)Adding $@"
+	$(SC)mkdir -p $@
 
 # =================================================================================
 # Command: [make merge]
 # Details: Compile all source files [.c .o] into a single object file
 #
 merge: _s_merge $(OUT_DIR) $(OBJ_NAMES)
-	@$(ECHO) "$(BLUE)> $(RCOLOR)Merging to $(OUT_DIR)/$(PROJ_RAW_NAME).o"
-	@$(CC) $(LDFLAGS) $(OBJ_FILES) -o $(OUT_DIR)/$(PROJ_RAW_NAME).o
-	@$(call mac_end_process,merge)
+	$(SC)$(ECHO) "$(BLUE)> $(RCOLOR)Merging to $(OUT_DIR)/$(PROJ_RAW_NAME).o"
+	$(SC)$(CC) $(LDFLAGS) $(OBJ_FILES) -o $(OUT_DIR)/$(PROJ_RAW_NAME).o
+	$(SC)$(call mac_end_process,merge)
 
 _s_merge: check
-	@$(call mac_start_process,merge)
+	$(SC)$(call mac_start_process,merge)
 
 # =================================================================================
 # Command: [make <c_file_name>.o]
 # Details: Compile of a particular c/cpp file to the corresponding o file
 #
-%.o: %.c check $(OUT_DIR)
-	@$(eval CCOVOPTS := $(if $(filter $(patsubst %/,%,$(dir $<)),$(DEV_DIR)),$(CCOV_CC)))
-	@$(ECHO) "$(GREEN)> $(RCOLOR)Compiling from $<"
-	@$(CC) $(CCFLAGS) $(CCOVOPTS) $< -o $(OUT_DIR)/$@
-
-%.o: %.cpp check $(OUT_DIR)
-	@$(eval CCOVOPTS := $(if $(filter $(patsubst %/,%,$(dir $<)),$(DEV_DIR)),$(CCOV_CC)))
-	@$(ECHO) "$(GREEN)> $(RCOLOR)Compiling from $<"
-	@$(CC) $(CCFLAGS) $(CCOVOPTS) $< -o $(OUT_DIR)/$@
+%.o: %.c check $(OUT_DIR)   ; $(call mac_build_process)
+%.o: %.cpp check $(OUT_DIR) ; $(call mac_build_process)
+%.o: %.cc check $(OUT_DIR)  ; $(call mac_build_process)
 
 # =================================================================================
 # Command: [make run]
 # Details: Run the executable already in the project
 #
 run: check
-	@$(call mac_start_process,run)
-	@check=0 && time_start=$$(date +%s%N) && \
+	$(SC)$(call mac_start_process,run)
+	$(SC)check=0 && time_start=$$(date +%s%N) && \
 	timeout --kill-after=$(RUN_TIMEOUT) $(RUN_TIMEOUT) $(OUT_DIR)/$(PROJ_RAW_NAME).exe $(VAR_ARGS) && retval=$$? || retval=$$?; \
 	time_end=$$(date +%s%N) && time_diff=$$(echo "(($$time_end - $$time_start) / 1000000)" | bc) && \
 	[ $$retval -eq 124 ] && $(ECHO) "\n$(RED)> $(RUN_TIMEOUT) timeout has expired$(RCOLOR)" || check=1; \
 	test -e "$(REPORT_RAW)" && $(ECHO) "0.duration = $$time_diff\n0.status = $$check" >> $(REPORT_RAW) || exit 0
-	@$(call mac_end_process,run)
+	$(SC)$(call mac_end_process,run)
 
 # =================================================================================
 # Command: [make report]
 # Details: Generate test report after running the program (use tptest.h)
 #
 report: check
-	@$(call mac_start_process,report)
-	@$(ECHO) "$(GREEN)> $(RCOLOR)Generating test report to $(REPORT_HTML)"
-ifneq ($(RUN_CCOV), on)
-	@$(TOOL_DIR)/bin/report.exe $(REPORT_RAW) "" $(REPORT_HTML)
-else # RUN_CCOV == on
-	@$(TOOL_DIR)/bin/report.exe $(REPORT_RAW) $(notdir $(CCOV_HTML)) $(REPORT_HTML)
-	@$(ECHO) "$(GREEN)> $(RCOLOR)Generating ccov report to $(CCOV_HTML)"
-	@gcovr --root $(DEV_DIR) --object-directory $(OUT_DIR) --html-details $(CCOV_HTML)
-endif # RUN_CCOV != on
-	@$(ECHO) "$(BLUE)> $(RCOLOR)Opening test report in browser"
-	@cygstart $(REPORT_HTML) || xdg-open $(REPORT_HTML)
-	@$(call mac_end_process,report)
+	$(SC)$(call mac_start_process,report)
+	$(SC)$(call mac_clean_report)
+ifneq ($(wildcard $(REPORT_RAW)),)
+	$(SC)$(ECHO) "$(GREEN)> $(RCOLOR)Generating test report to $(REPORT_HTML)"
+    ifeq ($(RUN_CCOV),on)
+		$(SC)$(TOOL_DIR)/bin/report.exe $(REPORT_RAW) $(notdir $(CCOV_HTML)) $(REPORT_HTML)
+		$(SC)$(mac_gen_ccov)
+    else # RUN_CCOV != on
+		$(SC)$(TOOL_DIR)/bin/report.exe $(REPORT_RAW) "" $(REPORT_HTML)
+    endif # RUN_CCOV == on
+	$(SC)$(call mac_open_report,test,$(REPORT_HTML))
+else # wildcard REPORT_RAW
+    ifeq ($(RUN_CCOV),on)
+		$(SC)$(mac_gen_ccov)
+		$(SC)$(call mac_open_report,ccov,$(CCOV_HTML))
+    endif # RUN_CCOV == on
+endif # !wildcard REPORT_RAW
+	$(SC)$(call mac_end_process,report)
 
 # =================================================================================
 # Command: [make pack]
 # Details: Pack your project ready to share
 #
 pack: clean _s_pack $(SHARE_DIR)
-	@$(ECHO) "$(GREEN)> $(RCOLOR)Compressing to $(SHARE_DIR)/$(PROJ_RAW_NAME).zip"
-	@cd "$(PROJ_DIR)" && zip -r $(SHARE_DIR)/$(PROJ_RAW_NAME).zip ./*
-	@$(call mac_end_process,pack)
+	$(SC)$(ECHO) "$(GREEN)> $(RCOLOR)Compressing to $(SHARE_DIR)/$(PROJ_RAW_NAME).zip"
+	$(SC)cd "$(PROJ_DIR)" && zip -r $(SHARE_DIR)/$(PROJ_RAW_NAME).zip ./*
+	$(SC)$(call mac_end_process,pack)
 
 _s_pack:
-	@$(call mac_start_process,pack)
+	$(SC)$(call mac_start_process,pack)
 
 # =================================================================================
 # Command: [make vsinit]
 # Details: Configure VSCode so that the software links to the correct path (only support GDB)
 #
 vsinit:
-	@mkdir -p $(ROOT_DIR)/.vscode
-	@$(TOOL_DIR)/bin/vsinit.exe '$(OUT_DIR)/$(PROJ_RAW_NAME).exe' '$(STOP_AT_ENTRY)' '$(EXTERNAL_CONSOLE)' $(MASK_INC_DIRS) $(VAR_ARGS)
+	$(SC)mkdir -p $(ROOT_DIR)/.vscode
+	$(SC)$(TOOL_DIR)/bin/vsinit.exe '$(OUT_DIR)/$(PROJ_RAW_NAME).exe' '$(STOP_AT_ENTRY)' '$(EXTERNAL_CONSOLE)' $(MASK_INC_DIRS) $(VAR_ARGS)
 
 # =================================================================================
 # Command: [make move.(<group>:)<project>]
@@ -300,14 +326,14 @@ vsinit:
 #          ~ [p] -> [p1] : Moving from [p] to [p1]
 #
 move.%:
-	@$(call mac_start_process,move)
+	$(SC)$(call mac_start_process,move)
 	$(eval LOCAL_PROJ_NAME := $(subst :,/,$(@:move.%=%)))
 	$(eval PROJ_DIR := $(ALL_PROJ_DIR)/$(LOCAL_PROJ_NAME))
-	@$(if $(wildcard $(PROJ_DIR)), \
+	$(SC)$(if $(wildcard $(PROJ_DIR)), \
 		$(if $(wildcard $(PROJ_DIR)/user_cfg.mk), $(mac_move_proj), $(mac_move_error)), \
 		$(mac_create_proj) && $(mac_move_proj) \
 	)
-	@$(call mac_end_process,move)
+	$(SC)$(call mac_end_process,move)
 
 # =================================================================================
 # Command: [make remove.(<group>:)<project>]
@@ -319,10 +345,10 @@ move.%:
 #          ~ [p] -> [temp] : Moving from [p] to [temp]
 #
 remove.%:
-	@$(call mac_start_process,remove)
+	$(SC)$(call mac_start_process,remove)
 	$(eval LOCAL_PROJ_NAME := $(subst :,/,$(@:remove.%=%)))
 	$(eval PROJ_DIR := $(ALL_PROJ_DIR)/$(LOCAL_PROJ_NAME))
-	@$(if $(filter $(PROJ_DIR),$(TEMP_DIR)), $(mac_remove_err), \
+	$(SC)$(if $(filter $(PROJ_DIR),$(TEMP_DIR)), $(mac_remove_err), \
 		$(if $(wildcard $(PROJ_DIR)), \
 			$(if $(wildcard $(PROJ_DIR)/user_cfg.mk), \
 				$(mac_remove_proj) $(if $(filter $(PROJ_NAME),$(LOCAL_PROJ_NAME)), $(eval LOCAL_PROJ_NAME := $(TEMP_NAME)) && $(mac_move_proj)), \
@@ -331,7 +357,7 @@ remove.%:
 			echo "? [$(LOCAL_PROJ_NAME)]" \
 		) \
 	)
-	@$(call mac_end_process,remove)
+	$(SC)$(call mac_end_process,remove)
 
 # =================================================================================
 # Command: [make import.(<group>:)<name> ZIP=<path/to/zip>]
@@ -340,10 +366,10 @@ remove.%:
 #          x [p] : Cannot be removed because the project already exists or the path is a group
 #
 import.%:
-	@$(call mac_start_process,import)
+	$(SC)$(call mac_start_process,import)
 	$(eval LOCAL_PROJ_NAME := $(subst :,/,$(@:import.%=%)))
 	$(eval PROJ_DIR := $(ALL_PROJ_DIR)/$(LOCAL_PROJ_NAME))
-	@$(if $(filter $(words $(ZIP)),1), \
+	$(SC)$(if $(filter $(words $(ZIP)),1), \
 		$(if $(filter %.zip,$(wildcard $(subst \,/,$(ZIP)))), \
 			$(if $(wildcard $(PROJ_DIR)), \
 				$(mac_move_error), \
@@ -353,29 +379,29 @@ import.%:
 		), \
 		$(mac_import_err) \
 	)
-	@$(call mac_end_process,import)
+	$(SC)$(call mac_end_process,import)
 
 # =================================================================================
 # Command: [make list]
 # Details: Print to the screen the names of files and folders in the project
 #
 list:
-	@$(call mac_start_process,list)
-	@tree $(PROJ_DIR)
-	@$(call mac_end_process,list)
+	$(SC)$(call mac_start_process,list)
+	$(SC)tree $(PROJ_DIR)
+	$(SC)$(call mac_end_process,list)
 
 # =================================================================================
 # Command: [make print.<var1>.<var2>...]
 # Details: Print the data of any variable in this makefile > Debug
 #
 print.%:
-	@$(call mac_start_process,print)
-	@echo -e \
+	$(SC)$(call mac_start_process,print)
+	$(SC)$(ECHO) \
 	"$(foreach BASE,$(subst ., ,$(@:print.%=%)), \
 		\n$(BLUE)$(BASE) =$(RCOLOR) \
 		$(foreach SUB,$($(BASE)),\n    $(SUB))\n \
 	)"
-	@$(call mac_end_process,print)
+	$(SC)$(call mac_end_process,print)
 
 check:
 	$(if $(filter $(PROJ_NAME),$(TEMP_NAME)), \
