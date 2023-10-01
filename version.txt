@@ -1,15 +1,19 @@
 ===================== DETAILS =====================
 
 > Brief        GCC C-MAKE FRAMEWORK
-> Version      1.0.2
-> Update       17-09-2023
+> Version      1.0.3
+> Update       10-01-2023
 > Copyright    2023. Belongs to Louisvn
 
 ====================== MODIFY =====================
 
-+ Update makefile and docs
++ Measures test execution time in microseconds
++ Added duration.h
 
 ===================== HISTORY =====================
+
+> Version 1.0.2  |  09-17-2023
+    + Update makefile and docs
 
 > Version 1.0.1  |  08-06-2023
     + Update makefile and utest library
