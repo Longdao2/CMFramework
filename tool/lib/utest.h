@@ -18,6 +18,7 @@ extern "C" {
 --------------------------------------------------------------------------- */
 #include <stdio.h>
 #include <time.h>
+#include "duration.h"
 
 /** -----------------------------------------------------------------------
 >>>                               Definitions
@@ -144,11 +145,10 @@ typedef struct
 /* ======================================================================== */
 
 #define UT_RunTests() \
-    clock_t __ut_start_time = 0; \
-    clock_t __ut_end_time = 0; \
     extern const UT_TestCase_t __ut_all_tests[]; \
     extern const uint_t __ut_all_tests_size; \
     extern unsigned char __ut_test_checker; \
+    duration_init(); \
     \
     /* Run and Update results */ \
     for (uint_t index_case = 0; index_case < __ut_all_tests_size; index_case++) { \
@@ -157,13 +157,13 @@ typedef struct
         \
         /* Run test and get status */ \
         __ut_test_checker = 1; \
-        __ut_start_time = clock(); \
+        duration_start(); \
         __ut_all_tests[index_case].func(); \
-        __ut_end_time = clock(); \
+        duration_end(); \
         \
         /* Update status */ \
         ut_setvar(index_case + 1, "status", __ut_test_checker); \
-        ut_setvar(index_case + 1, "duration", ((uint_t)(__ut_end_time - __ut_start_time) * 1000) / CLOCKS_PER_SEC); \
+        ut_setvar(index_case + 1, "duration", (uint_t)(DURATION_VALUE * 1000.0)); \
         \
         /* Display result */ \
         if (1 == __ut_test_checker) { \
