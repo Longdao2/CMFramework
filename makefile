@@ -2,8 +2,8 @@
 # File         makefile                                                           #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.2                                                              #
-# Update       17-09-2023                                                         #
+# Version      1.0.3                                                              #
+# Update       10-04-2023                                                         #
 # Copyright    2023 (c) Belongs to Louisvn                                        #
 # Details      Common configuration for all projects                              #
 #=================================================================================#
@@ -27,12 +27,11 @@ RED       :=  \033[0;31m
 GREEN     :=  \033[0;32m
 BLUE      :=  \033[0;34m
 GRAY      :=  \033[38;2;97;97;97m
-INVERT	  :=  \033[7m
+INVERT    :=  \033[7m
 RCOLOR    :=  \033[0m
 
+BUILD_PROCESS := 0
 ZIP :=
-_S1  = "
-_S2  = ,
 
 # Base paths (start at Framework folder)
 ROOT_DIR        := $(shell pwd | sed -e 's/\/cygdrive\/\(.\)/\1:/')
@@ -68,9 +67,9 @@ endif # SHOW_CMD != on
 # Display informations
 ifneq ($(QUIET),on)
 $(info )
-$(info PROJ > $(PROJ_NAME))
-$(info DATE > $(shell date +%Y-%m-%d' '%H:%M:%S))
-$(info USER > $(USER_NAME))
+$(info Name : $(PROJ_NAME))
+$(info Date : $(shell date +%Y-%m-%d' '%H:%M:%S))
+$(info User : $(USER_NAME))
 $(info )
 endif # QUIET != on
 
@@ -82,7 +81,7 @@ CCOV_HTML       := $(DOC_DIR)/$(PROJ_RAW_NAME)_ccov.html
 .PHONY: setup all clean build run merge report status pack vsinit check \
         move.% remove.% import.% list print.%
 
-all: clean build run
+all: build run
 
 #---------------------------------------------------------------------------------#
 #                                      Macro                                      #
@@ -128,10 +127,13 @@ mac_open_report   = if [ -e "$(2)" ] && [ "$(SHOW_REPORT)" = "on" ]; then ( \
                         cygstart $(2) || xdg-open $(2) || $(ECHO) "$(RED)~ Error: Cannot open $(2) $(RCOLOR)" \
                     ) fi
 
+mac_start_build   = $(if $(filter 1,$(BUILD_PROCESS)), $(call mac_start_process,build) $(eval BUILD_PROCESS := 2))
+
 define mac_build_process
+	$(SC)$(mac_start_build)
 	$(eval CCOVOPTS := $(if $(filter $(dir $<),$(DEV_DIR)/),$(CCOV_CC)))
 	$(SC)$(ECHO) "$(GREEN)> $(RCOLOR)Compiling from $<"
-	$(SC)$(CC) $(CCFLAGS) $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g3) $(CCOVOPTS) $< -o $(OUT_DIR)/$@
+	$(SC)$(CC) $(CCFLAGS) -MMD -MP -MF"$(@:%.o=%.d)" $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g3) $(CCOVOPTS) $< -o $@
 endef
 
 #---------------------------------------------------------------------------------#
@@ -167,13 +169,13 @@ SRC_NODEBUG_FILES += utest.c
 TLS_OBJ_FILES := $(wildcard $(TOOL_DIR)/bin/obj/*.o)
 TLS_EXE_NAMES := $(notdir $(TLS_OBJ_FILES:%.o=%.exe))
 
-vpath %.c $(dir $(SRC_FILES))
+vpath %.c $(sort $(dir $(SRC_FILES)))
 ifeq ($(USE_CPP),on)
-vpath %.cpp $(dir $(SRC_FILES))
-vpath %.cc $(dir $(SRC_FILES))
+vpath %.cpp $(sort $(dir $(SRC_FILES)))
+vpath %.cc $(sort $(dir $(SRC_FILES)))
 endif # USE_CPP == on
-vpath %.o $(dir $(OBJ_FILES))
-vpath %.o $(TOOL_DIR)/bin/obj
+vpath %.o $(sort $(dir $(OBJ_FILES)))
+vpath %.o $(sort $(TOOL_DIR)/bin/obj)
 
 # Parsing file names in the project
 OBJ_NAMES := $(notdir $(SRC_FILES:%.c=%.o))
@@ -229,17 +231,26 @@ clean:
 # Command: [make build]
 # Details: Compile all source files in project
 #
-build: _s_build $(OUT_DIR) $(OBJ_NAMES)
+build: _s_build $(OUT_DIR) $(OBJ_FILES) $(OUT_DIR)/$(PROJ_RAW_NAME).exe
+	$(SC)$(if $(filter 2,$(BUILD_PROCESS)), $(call mac_end_process,build) $(eval BUILD_PROCESS := 0))
+
+$(OUT_DIR)/$(PROJ_RAW_NAME).exe: $(OBJ_FILES) | $(OUT_DIR)
+	$(SC)$(mac_start_build)
 	$(SC)$(ECHO) "$(BLUE)> $(RCOLOR)Linking to $(OUT_DIR)/$(PROJ_RAW_NAME).exe"
 	$(SC)$(CC) $(CCOV_LD) $(OBJ_FILES) -o $(OUT_DIR)/$(PROJ_RAW_NAME).exe
-	$(SC)$(call mac_end_process,build)
 
 _s_build: check
-	$(SC)$(call mac_start_process,build)
+	$(eval BUILD_PROCESS := 1)
 
 $(SHARE_DIR) $(OUT_DIR):
+	$(SC)$(mac_start_build)
 	$(SC)$(ECHO) "$(RED)> $(RCOLOR)Adding $@"
 	$(SC)mkdir -p $@
+
+check:
+	$(if $(filter $(PROJ_NAME),$(TEMP_NAME)), \
+	$(error Some features are limited on template project. Please create or move to another project))
+	@:
 
 # =================================================================================
 # Command: [make merge]
@@ -255,11 +266,12 @@ _s_merge: check
 
 # =================================================================================
 # Command: [make <c_file_name>.o]
-# Details: Compile of a particular c/cpp file to the corresponding o file
+# Details: Compile of a particular c/cpp/cc file to the corresponding o file
 #
-%.o: %.c check $(OUT_DIR)   ; $(call mac_build_process)
-%.o: %.cpp check $(OUT_DIR) ; $(call mac_build_process)
-%.o: %.cc check $(OUT_DIR)  ; $(call mac_build_process)
+$(OUT_DIR)/%.o: %.c   | check $(OUT_DIR) ; $(call mac_build_process)
+$(OUT_DIR)/%.o: %.cpp | check $(OUT_DIR) ; $(call mac_build_process)
+$(OUT_DIR)/%.o: %.cc  | check $(OUT_DIR) ; $(call mac_build_process)
+$(OBJ_NAMES): %.o: $(OUT_DIR)/%.o | check $(OUT_DIR) ; @:
 
 # =================================================================================
 # Command: [make run]
@@ -403,10 +415,11 @@ print.%:
 	)"
 	$(SC)$(call mac_end_process,print)
 
-check:
-	$(if $(filter $(PROJ_NAME),$(TEMP_NAME)), \
-	$(error Some features are limited on template project. Please create or move to another project))
-	@:
+#---------------------------------------------------------------------------------#
+#                                   Dependencies                                  #
+#---------------------------------------------------------------------------------#
+
+-include $(OBJ_FILES:%.o=%.d)
 
 #---------------------------------------------------------------------------------#
 #                                   End of file                                   #
