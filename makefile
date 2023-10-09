@@ -19,7 +19,7 @@ PROJ_NAME := ~temp
 SHELL = bash
 
 # Used to perform an action with a recursive target
-MAKE := make -s QUIET=on
+MAKE := make -s forced=on
 
 # Define the colors to display on the console
 ECHO      :=  echo -e
@@ -63,15 +63,6 @@ include $(PROJ_DIR)/user_cfg.mk
 ifneq ($(SHOW_CMD),on)
 SC = @
 endif # SHOW_CMD != on
-
-# Display informations
-ifneq ($(QUIET),on)
-$(info )
-$(info Name : $(PROJ_NAME))
-$(info Date : $(shell date +%Y-%m-%d' '%H:%M:%S))
-$(info User : $(USER_NAME))
-$(info )
-endif # QUIET != on
 
 # Path to test report files
 REPORT_RAW      := $(OUT_DIR)/$(PROJ_RAW_NAME).ret
@@ -133,7 +124,7 @@ define mac_build_process
 	$(SC)$(mac_start_build)
 	$(eval CCOVOPTS := $(if $(filter $(dir $<),$(DEV_DIR)/),$(CCOV_CC)))
 	$(SC)$(ECHO) "$(GREEN)> $(RCOLOR)Compiling from $<"
-	$(SC)$(CC) $(CCFLAGS) -MMD -MP -MF"$(@:%.o=%.d)" $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g3) $(CCOVOPTS) $< -o $@
+	$(SC)$(CC) $(CCFLAGS) $(MASK_INC_DIRS) -MMD -MP -MF"$(@:%.o=%.d)" $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g3) $(CCOVOPTS) $< -o $@
 endef
 
 #---------------------------------------------------------------------------------#
@@ -141,11 +132,11 @@ endef
 #---------------------------------------------------------------------------------#
 
 # Check input parameters are valid
-ifneq ($(filter move.%,$(MAKECMDGOALS))$(filter remove.%,$(MAKECMDGOALS))$(filter import.%,$(MAKECMDGOALS)),)
+ifneq ($(filter move.% remove.% import.%, $(MAKECMDGOALS)),)
 ifneq ($(words $(MAKECMDGOALS)),1)
 $(error You can only use the command [move], [remove] or [import] individually)
-endif #
-endif #
+endif # MAKECMDGOALS
+endif # MAKECMDGOALS
 
 # Config for each programming language
 ifeq ($(USE_CPP),on)
@@ -175,7 +166,7 @@ vpath %.cpp $(sort $(dir $(SRC_FILES)))
 vpath %.cc $(sort $(dir $(SRC_FILES)))
 endif # USE_CPP == on
 vpath %.o $(sort $(dir $(OBJ_FILES)))
-vpath %.o $(sort $(TOOL_DIR)/bin/obj)
+vpath %.o $(TOOL_DIR)/bin/obj
 
 # Parsing file names in the project
 OBJ_NAMES := $(notdir $(SRC_FILES:%.c=%.o))
@@ -188,15 +179,15 @@ OBJ_FILES += $(addprefix $(OUT_DIR)/,$(OBJ_NAMES))
 # Add prefix to the directory containing the header file
 MASK_INC_DIRS := $(addprefix -I ,$(INC_DIRS))
 
-# Definitions for testing
-USER_DEFS   +=  -D UTEST_SUPPORT \
-                -D "OUTPATH=\"$(REPORT_RAW)\"" \
-                -D "USER_NAME=\"$(USER_NAME)\"" \
-                -D "PROJ_NAME=\"$(PROJ_NAME)\""
-
 # Add compiler flags (if any)
-CCFLAGS += -c -Wall $(MASK_INC_DIRS) $(USER_DEFS)
+CCFLAGS += -c -Wall
 LDFLAGS += -r
+
+# Definitions for testing
+CCFLAGS +=  -D UTEST_SUPPORT \
+            -D "OUTPATH=\"$(REPORT_RAW)\"" \
+            -D "USER_NAME=\"$(USER_NAME)\"" \
+            -D "PROJ_NAME=\"$(PROJ_NAME)\""
 
 ifeq ($(RUN_CCOV), on)
 CCOV_CC += -fprofile-arcs -ftest-coverage
@@ -218,6 +209,21 @@ $(TLS_EXE_NAMES): %.exe: %.o
 	$(SC)gcc $< -o $(TOOL_DIR)/bin/$@
 
 # =================================================================================
+# Command: [make info]
+# Details: Print on the screen some information about the project
+#
+info:
+	@$(call mac_start_process,info) && \
+	echo "Project Name : $(PROJ_NAME)" && \
+	echo "User Name    : $(USER_NAME)" && \
+	echo "Use CPP      : $(USE_CPP)" && \
+	echo "Run Timeout  : $(RUN_TIMEOUT)" && \
+	echo "Run CCOV     : $(RUN_CCOV)" && \
+	echo "Show Report  : $(SHOW_REPORT)" && \
+	echo "Arguments    : $(if $(VAR_ARGS),$(VAR_ARGS),None!)" && \
+	$(call mac_end_process,info)
+
+# =================================================================================
 # Command: [make clean]
 # Details: Clean all files in project output
 #
@@ -231,38 +237,26 @@ clean:
 # Command: [make build]
 # Details: Compile all source files in project
 #
-build: _s_build $(OUT_DIR) $(OBJ_FILES) $(OUT_DIR)/$(PROJ_RAW_NAME).exe
+build: _s_build $(OUT_DIR) $(OBJ_FILES) $(OUT_DIR)/$(PROJ_RAW_NAME).o $(OUT_DIR)/$(PROJ_RAW_NAME).exe
 	$(SC)$(if $(filter 2,$(BUILD_PROCESS)), $(call mac_end_process,build) $(eval BUILD_PROCESS := 0))
-
-$(OUT_DIR)/$(PROJ_RAW_NAME).exe: $(OBJ_FILES) | $(OUT_DIR)
-	$(SC)$(mac_start_build)
-	$(SC)$(ECHO) "$(BLUE)> $(RCOLOR)Linking to $(OUT_DIR)/$(PROJ_RAW_NAME).exe"
-	$(SC)$(CC) $(CCOV_LD) $(OBJ_FILES) -o $(OUT_DIR)/$(PROJ_RAW_NAME).exe
 
 _s_build: check
 	$(eval BUILD_PROCESS := 1)
-
-$(SHARE_DIR) $(OUT_DIR):
-	$(SC)$(mac_start_build)
-	$(SC)$(ECHO) "$(RED)> $(RCOLOR)Adding $@"
-	$(SC)mkdir -p $@
 
 check:
 	$(if $(filter $(PROJ_NAME),$(TEMP_NAME)), \
 	$(error Some features are limited on template project. Please create or move to another project))
 	@:
 
-# =================================================================================
-# Command: [make merge]
-# Details: Compile all source files [.c .o] into a single object file
-#
-merge: _s_merge $(OUT_DIR) $(OBJ_NAMES)
-	$(SC)$(ECHO) "$(BLUE)> $(RCOLOR)Merging to $(OUT_DIR)/$(PROJ_RAW_NAME).o"
-	$(SC)$(CC) $(LDFLAGS) $(OBJ_FILES) -o $(OUT_DIR)/$(PROJ_RAW_NAME).o
-	$(SC)$(call mac_end_process,merge)
+$(OUT_DIR)/$(PROJ_RAW_NAME).o: $(OBJ_FILES) | $(OUT_DIR)
+	$(SC)$(mac_start_build)
+	$(SC)$(ECHO) "$(RED)> $(RCOLOR)Merging to $@"
+	$(SC)$(CC) $(LDFLAGS) $(OBJ_FILES) -o $@
 
-_s_merge: check
-	$(SC)$(call mac_start_process,merge)
+$(OUT_DIR)/$(PROJ_RAW_NAME).exe: $(OUT_DIR)/$(PROJ_RAW_NAME).o | $(OUT_DIR)
+	$(SC)$(mac_start_build)
+	$(SC)$(ECHO) "$(BLUE)> $(RCOLOR)Linking to $(OUT_DIR)/$(PROJ_RAW_NAME).exe"
+	$(SC)$(CC) $< -o $(OUT_DIR)/$(PROJ_RAW_NAME).exe
 
 # =================================================================================
 # Command: [make <c_file_name>.o]
@@ -314,13 +308,17 @@ endif # !wildcard REPORT_RAW
 # Command: [make pack]
 # Details: Pack your project ready to share
 #
-pack: clean _s_pack $(SHARE_DIR)
+pack: clean _s_pack | $(SHARE_DIR)
 	$(SC)$(ECHO) "$(GREEN)> $(RCOLOR)Compressing to $(SHARE_DIR)/$(PROJ_RAW_NAME).zip"
 	$(SC)cd "$(PROJ_DIR)" && zip -r $(SHARE_DIR)/$(PROJ_RAW_NAME).zip ./*
 	$(SC)$(call mac_end_process,pack)
 
 _s_pack:
 	$(SC)$(call mac_start_process,pack)
+
+$(SHARE_DIR):
+	$(SC)$(ECHO) "$(BLUE)> $(RCOLOR)Adding $@"
+	$(SC)mkdir -p $@
 
 # =================================================================================
 # Command: [make vsinit]
@@ -419,7 +417,29 @@ print.%:
 #                                   Dependencies                                  #
 #---------------------------------------------------------------------------------#
 
+ifneq ($(forced),on)
+ifneq ($(filter %.o all build $(OUT_DIR)/%.o $(OUT_DIR)/$(PROJ_RAW_NAME).exe !words!0, $(MAKECMDGOALS) !words!$(words $(MAKECMDGOALS))),)
+CC_DEPEND_FILE := $(OUT_DIR)/$(PROJ_RAW_NAME).ccd
+LD_DEPEND_FILE := $(OUT_DIR)/$(PROJ_RAW_NAME).ldd
+
+$(info )
+$(info $(shell $(ECHO) "$(GREEN)~ $(RCOLOR)Synchronizing with dependent units ..."))
+
+CC_DEPEND_CHECK := $(shell [ "$$(cat $(CC_DEPEND_FILE) 2>/dev/null)" = "$$(echo "$(CCFLAGS)")" ] || echo 0 )
+LD_DEPEND_CHECK := $(shell [ "$$(cat $(LD_DEPEND_FILE) 2>/dev/null)" = "$$(echo "$(LDFLAGS)")" ] || echo 0 )
+
+ifeq ($(CC_DEPEND_CHECK),0)
+    NOTHING := $(shell rm -f $(OUT_DIR)/*.o && mkdir -p $(OUT_DIR) && echo "$(CCFLAGS)" > $(CC_DEPEND_FILE))
+endif
+ifeq ($(LD_DEPEND_CHECK),0)
+    NOTHING := $(shell rm -f $(OUT_DIR)/$(PROJ_RAW_NAME).o && mkdir -p $(OUT_DIR) && echo "$(LDFLAGS)" > $(LD_DEPEND_FILE))
+endif
+
 -include $(OBJ_FILES:%.o=%.d)
+
+endif # forced != on
+$(info )
+endif # MAKECMDGOALS
 
 #---------------------------------------------------------------------------------#
 #                                   End of file                                   #
