@@ -75,7 +75,7 @@ endif
   include $(TOOL_DIR)/make/macros.mk
 
 #---------------------------------------------------------------------------------#
-#                                     Process                                     #
+#                                    Analysis                                     #
 #---------------------------------------------------------------------------------#
 
 # Check input parameters are valid
@@ -101,7 +101,7 @@ endif # USE_CPP == on
 # List of source code files that do not support debugging
   SRC_NODEBUG_FILES += utest.c
 
-# Search all object files in the tool
+# Search all source files
   TLS_OBJ_FILES := $(wildcard $(TOOL_DIR)/bin/obj/*.o)
   TLS_EXE_NAMES := $(notdir $(TLS_OBJ_FILES:%.o=%.exe))
 
@@ -129,6 +129,7 @@ endif # USE_CPP == on
               -D "USER_NAME=\"$(USER_NAME)\"" \
               -D "PROJ_NAME=\"$(PROJ_NAME)\""
 
+# Definitions for the code coverage feature
 ifeq ($(RUN_CCOV), on)
   CCOV_CC += -fprofile-arcs -ftest-coverage
   CCOV_LD += --coverage
@@ -150,7 +151,9 @@ ifneq ($(PROJ_LIST),)
   __forced := on
 
 $(word 1,$(MAKECMDGOALS)) _all:
-	@$(foreach CURR_PROJ, $(PROJ_LIST), $(ECHO) "\n=============== Project: $(CURR_PROJ) ===============" && $(MAKE) __forced=off PROJ_LIST="" PROJ_NAME=$(CURR_PROJ) $(MAKECMDGOALS) || exit 0;)
+	@$(foreach CURR_PROJ, $(PROJ_LIST), \
+	$(ECHO) "\n=============== Project: $(CURR_PROJ) ===============" && \
+	$(MAKE) __forced=off PROJ_LIST="" PROJ_NAME=$(CURR_PROJ) $(MAKECMDGOALS) || exit 0;)
 
 $(filter-out $(word 1, $(MAKECMDGOALS)), $(MAKECMDGOALS)):
 	@:
