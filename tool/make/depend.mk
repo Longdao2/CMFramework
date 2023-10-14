@@ -12,19 +12,19 @@
 #                                   Dependencies                                  #
 #---------------------------------------------------------------------------------#
 
-  CC_DEPEND_FILE := $(OUT_DIR)/$(PROJ_RAW).ccd
-  LD_DEPEND_FILE := $(OUT_DIR)/$(PROJ_RAW).ldd
+  CCD_FILE := $(OUT_DIR)/$(PROJ_RAW).ccd
+  LDD_FILE := $(OUT_DIR)/$(PROJ_RAW).ldd
 
-  CC_DEPEND_CHECK := $(shell [ "$$(cat $(CC_DEPEND_FILE) 2>/dev/null)" = "$$(echo "$(CCFLAGS)")" ] || echo 0 )
-  LD_DEPEND_CHECK := $(shell [ "$$(cat $(LD_DEPEND_FILE) 2>/dev/null)" = "$$(echo "$(LDFLAGS)")" ] || echo 0 )
+  CCD_CHECK := $(shell [ "$$(cat $(CCD_FILE) 2>/dev/null)" = "$$(echo "$(CCFLAGS)")" ] || echo 0 )
+  LDD_CHECK := $(shell [ "$$(cat $(LDD_FILE) 2>/dev/null)" = "$$(echo "$(LDFLAGS)")" ] || echo 0 )
 
   SILENT := $(shell [ -e $(OUT_DIR) ] && echo -n > $(LOG_FILE) && echo -n > $(STATUS_FILE))
 
-ifeq ($(CC_DEPEND_CHECK),0)
+ifeq ($(CCD_CHECK),0)
   SILENT := $(shell rm -f $(OUT_DIR)/*.o)
 endif
 
-ifeq ($(LD_DEPEND_CHECK),0)
+ifeq ($(LDD_CHECK),0)
   SILENT := $(shell rm -f $(OUT_DIR)/$(PROJ_RAW).o)
 endif
 
