@@ -25,7 +25,7 @@ ifeq ($(CCD_CHECK),0)
 endif
 
 ifeq ($(LDD_CHECK),0)
-  SILENT := $(shell rm -f $(OUT_DIR)/$(PROJ_RAW).o)
+  SILENT := $(shell rm -f $(PROJ_OBJ))
 endif
 
 -include $(OBJ_FILES:%.o=%.d)
