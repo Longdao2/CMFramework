@@ -14,9 +14,6 @@
 # Your full name to show in the terminal and test report
 USER_NAME := Your Full Name
 
-# Using C++ programming language in the project (on/off)
-USE_CPP := off
-
 # Run with time out (seconds)
 RUN_TIMEOUT := 30.0s
 
@@ -25,9 +22,6 @@ RUN_CCOV := off
 
 # Show the report to the web browser after it is generated (on/off)
 SHOW_REPORT := off
-
-# Show command in terminal [not recommended] (on/off)
-SHOW_CMD := off
 
 #---------------------------------------------------------------------------------#
 #                                Paths and options                                #
