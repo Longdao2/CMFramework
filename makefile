@@ -30,7 +30,7 @@
   INVERT  :=  \033[7m
   RCOLOR  :=  \033[0m
 
-  BUILD_PROCESS := 0
+  BUILD_VAL := 0
   ZIP :=
 
 # Base paths (start at Framework folder)
@@ -45,6 +45,9 @@
   OUT_DIR    :=  $(PROJ_DIR)/out
   DOC_DIR    :=  $(PROJ_DIR)/doc
   PROJ_RAW   :=  __$(subst /,.,$(PROJ_NAME))
+
+  PROJ_OBJ   := $(OUT_DIR)/$(PROJ_RAW).o
+  PROJ_EXE   := $(OUT_DIR)/$(PROJ_RAW).exe
 
 # Path to report files
   LOG_FILE     :=  $(OUT_DIR)/$(PROJ_RAW).log
@@ -84,13 +87,6 @@ ifneq ($(filter move.% remove.% import.%, $(MAKECMDGOALS)),)
     $(error You can only use the command [move], [remove] or [import] individually)
   endif # MAKECMDGOALS
 endif # MAKECMDGOALS
-
-# Config for each programming language
-ifeq ($(USE_CPP),on)
-  CC := g++
-else # USE_CPP != on
-  CC := gcc
-endif # USE_CPP == on
 
 # Search all source files in the project
   SRC_FILES += $(foreach SRC_DIR,$(SRC_DIRS),$(wildcard $(SRC_DIR)/*.c)) \
@@ -135,6 +131,11 @@ ifeq ($(RUN_CCOV), on)
   CCOV_LD += --coverage
 endif # RUN_CCOV == on
 
+# Config for each programming language
+  CC := gcc
+  PP := g++
+  LD := $(if $(filter %.cc %.cpp, $(SRC_FILES)), g++, gcc)
+
 #---------------------------------------------------------------------------------#
 #                                      Rules                                      #
 #---------------------------------------------------------------------------------#
@@ -168,7 +169,7 @@ endif # PROJ_LIST != ""
 #---------------------------------------------------------------------------------#
 
 ifneq ($(__forced),on)
-  ifneq ($(filter %.o quick force build $(OUT_DIR)/%.o $(OUT_DIR)/$(PROJ_RAW).exe !words!0, $(MAKECMDGOALS) !words!$(words $(MAKECMDGOALS))),)
+  ifneq ($(filter %.o quick force build $(OUT_DIR)/%.o $(PROJ_EXE) !words!0, $(MAKECMDGOALS) !words!$(words $(MAKECMDGOALS))),)
     include $(TOOL_DIR)/make/depend.mk
   endif # MAKECMDGOALS
   $(info )
