@@ -158,6 +158,10 @@ endif # RUN_CCOV == on
 ifneq ($(PROJ_LIST),)
   __forced := on
 
+  ifneq ($(filter move.% remove.% import.% export.%, $(MAKECMDGOALS)),)
+    $(error Features [move], [remove], [import] and [export] cannot be used in the list of projects)
+  endif # MAKECMDGOALS
+
 $(word 1,$(MAKECMDGOALS)) _all:
 	@$(foreach CURR_PROJ, $(PROJ_LIST), \
 	$(ECHO) "\n=============== Project: $(CURR_PROJ) ===============" && \
