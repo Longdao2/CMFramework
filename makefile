@@ -13,7 +13,7 @@
 #---------------------------------------------------------------------------------#
 
 # Path to your project (start at BASE_DIR)
-  PROJ_NAME := a
+  PROJ_NAME := ~temp
 
 # Set bash as default console to run commands
   SHELL = bash
@@ -31,7 +31,8 @@
   RCOLOR  :=  \033[0m
 
   BUILD_VAL := 0
-  ZIP :=
+  LOG_CHECK := 0
+  ZIP ?=
 
 # Base paths (start at Framework folder)
   ROOT_DIR   :=  $(shell pwd | sed -e 's/\/cygdrive\/\(.\)/\1:/')
@@ -46,8 +47,11 @@
   DOC_DIR    :=  $(PROJ_DIR)/doc
   PROJ_RAW   :=  __$(subst /,.,$(PROJ_NAME))
 
-  PROJ_OBJ   := $(OUT_DIR)/$(PROJ_RAW).o
-  PROJ_EXE   := $(OUT_DIR)/$(PROJ_RAW).exe
+  PROJ_OBJ     := $(OUT_DIR)/$(PROJ_RAW).o
+  PROJ_EXE     := $(OUT_DIR)/$(PROJ_RAW).exe
+  REPORT_EXE   :=  $(TOOL_DIR)/bin/report.exe
+  GCOVR_EXE    :=  gcovr
+  OPEN_URI_EXE :=  cygstart
 
 # Path to report files
   LOG_FILE     :=  $(OUT_DIR)/$(PROJ_RAW).log
@@ -55,6 +59,8 @@
   REPORT_RAW   :=  $(OUT_DIR)/$(PROJ_RAW).ret
   REPORT_HTML  :=  $(DOC_DIR)/$(PROJ_RAW).html
   CCOV_HTML    :=  $(DOC_DIR)/$(PROJ_RAW)_ccov.html
+  CCD_FILE     :=  $(OUT_DIR)/$(PROJ_RAW).ccd
+  LDD_FILE     :=  $(OUT_DIR)/$(PROJ_RAW).ldd
 
 # Broken if the template project no longer exists
 ifeq ("$(wildcard $(TEMP_DIR)/user_cfg.mk)","")
@@ -82,9 +88,9 @@ endif
 #---------------------------------------------------------------------------------#
 
 # Check input parameters are valid
-ifneq ($(filter move.% remove.% import.%, $(MAKECMDGOALS)),)
+ifneq ($(filter move.% remove.% import.% export.%, $(MAKECMDGOALS)),)
   ifneq ($(words $(MAKECMDGOALS)),1)
-    $(error You can only use the command [move], [remove] or [import] individually)
+    $(error You can only use the command [move], [remove], [import] or [export] individually)
   endif # MAKECMDGOALS
 endif # MAKECMDGOALS
 
@@ -115,15 +121,21 @@ endif # MAKECMDGOALS
 # Add prefix to the directory containing the header file
   MASK_INC_DIRS := $(addprefix -I ,$(INC_DIRS))
 
+# Config for each programming language
+  CC := gcc
+  PP := g++
+  LD := $(if $(filter %.cc %.cpp, $(SRC_FILES)), $(PP), $(CC))
+
 # Add compiler flags (if any)
   CCFLAGS += -c -Wall -Wextra -fmessage-length=0
   LDFLAGS += -r
 
 # Definitions for testing
-  CCFLAGS +=  -D UTEST_SUPPORT \
-              -D "OUTPATH=\"$(REPORT_RAW)\"" \
-              -D "USER_NAME=\"$(USER_NAME)\"" \
-              -D "PROJ_NAME=\"$(PROJ_NAME)\""
+  CCFLAGS +=  -D "UTEST_SUPPORT"               \
+              -D "OUTPATH=\"$(REPORT_RAW)\""   \
+              -D "USER_NAME=\"$(USER_NAME)\""  \
+              -D "PROJ_NAME=\"$(PROJ_NAME)\""  \
+              -D "RUN_CCOV=$(if $(filter $(RUN_CCOV),on),1,0)"
 
 # Definitions for the code coverage feature
 ifeq ($(RUN_CCOV), on)
@@ -131,21 +143,16 @@ ifeq ($(RUN_CCOV), on)
   CCOV_LD += --coverage
 endif # RUN_CCOV == on
 
-# Config for each programming language
-  CC := gcc
-  PP := g++
-  LD := $(if $(filter %.cc %.cpp, $(SRC_FILES)), g++, gcc)
-
 #---------------------------------------------------------------------------------#
 #                                      Rules                                      #
 #---------------------------------------------------------------------------------#
 
 # All rules
-  .PHONY: setup quick force info clean build run report status vsinit list \
+  .PHONY: quick force setup info clean build run report vsinit list \
           move.% remove.% import.% export.% print.%
 
 # Extension rules (Please do not use them directly)
-  .PHONY: _all _s_build _check_project _check_depend _s_export
+  .PHONY: _all _s_build _check_project _check_depend
 
 # Supports a queue that allows execution across multiple projects
 ifneq ($(PROJ_LIST),)
@@ -154,7 +161,9 @@ ifneq ($(PROJ_LIST),)
 $(word 1,$(MAKECMDGOALS)) _all:
 	@$(foreach CURR_PROJ, $(PROJ_LIST), \
 	$(ECHO) "\n=============== Project: $(CURR_PROJ) ===============" && \
-	$(MAKE) __forced=off PROJ_LIST="" PROJ_NAME=$(CURR_PROJ) $(MAKECMDGOALS) || exit 0;)
+	[ -e $(BASE_DIR)/$(CURR_PROJ)/user_cfg.mk ] && \
+	$(MAKE) __forced=off PROJ_LIST="" PROJ_NAME=$(CURR_PROJ) $(MAKECMDGOALS) || \
+	(echo && $(call message_error, This project does not exist\n));)
 
 $(filter-out $(word 1, $(MAKECMDGOALS)), $(MAKECMDGOALS)):
 	@:
@@ -169,7 +178,7 @@ endif # PROJ_LIST != ""
 #---------------------------------------------------------------------------------#
 
 ifneq ($(__forced),on)
-  ifneq ($(filter %.o quick force build $(OUT_DIR)/%.o $(PROJ_EXE) !words!0, $(MAKECMDGOALS) !words!$(words $(MAKECMDGOALS))),)
+  ifneq ($(filter %.o quick build $(OUT_DIR)/%.o $(PROJ_EXE) !w!0, $(MAKECMDGOALS) !w!$(words $(MAKECMDGOALS))),)
     include $(TOOL_DIR)/make/depend.mk
   endif # MAKECMDGOALS
   $(info )
