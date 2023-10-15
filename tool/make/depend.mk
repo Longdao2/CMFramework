@@ -12,13 +12,11 @@
 #                                   Dependencies                                  #
 #---------------------------------------------------------------------------------#
 
-  CCD_FILE := $(OUT_DIR)/$(PROJ_RAW).ccd
-  LDD_FILE := $(OUT_DIR)/$(PROJ_RAW).ldd
-
   CCD_CHECK := $(shell [ "$$(cat $(CCD_FILE) 2>/dev/null)" = "$$(echo "$(CCFLAGS)")" ] || echo 0 )
   LDD_CHECK := $(shell [ "$$(cat $(LDD_FILE) 2>/dev/null)" = "$$(echo "$(LDFLAGS)")" ] || echo 0 )
 
-  SILENT := $(shell [ -e $(OUT_DIR) ] && echo -n > $(LOG_FILE) && echo -n > $(STATUS_FILE))
+  SILENT := $(shell [ -e $(OUT_DIR) ] && $(log_satrt) && echo -n > $(STATUS_FILE))
+  LOG_CHECK := 1
 
 ifeq ($(CCD_CHECK),0)
   SILENT := $(shell rm -f $(OUT_DIR)/*.o)
