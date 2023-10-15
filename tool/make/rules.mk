@@ -84,7 +84,7 @@ _check_project:
 _check_depend:
 	@$(if $(filter 0, $(CCD_CHECK)), $(eval CCD_CHECK := 1) $(build_start) echo "$(CCFLAGS)" > $(CCD_FILE))
 	@$(if $(filter 0, $(LDD_CHECK)), $(eval LDD_CHECK := 1) $(build_start) echo "$(LDFLAGS)" > $(LDD_FILE))
-	@$(if $(filter 0, $(LOG_CHECK)), $(eval LOG_CHECK := 1) $(log_satrt))
+	@$(if $(filter 0, $(LOG_CHECK)), $(eval LOG_CHECK := 1) $(log_start))
 
 # =================================================================================
 # Command: [make <src_name>.o]

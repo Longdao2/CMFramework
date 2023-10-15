@@ -105,7 +105,7 @@ export_err     =  $(call message_error, The [$(CURR_PROJ_NAME)] project/group do
 export_process =  $(call message_green, Compressing to $(SHARE_DIR)/__$(subst /,.,$(CURR_PROJ_NAME)).zip) && \
                   cd "$(PROJ_DIR)" && zip -r $(SHARE_DIR)/__$(subst /,.,$(CURR_PROJ_NAME)).zip ./*
 
-log_satrt      =  (echo; echo; date +'========================= '%H:%M:%S' '%Y-%m-%d' ========================='; echo) >> $(LOG_FILE)
+log_start      =  (echo; echo; date +'========================= '%H:%M:%S' '%Y-%m-%d' ========================='; echo) >> $(LOG_FILE)
 
 #---------------------------------------------------------------------------------#
 #                                   End of file                                   #

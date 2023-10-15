@@ -15,8 +15,7 @@
   CCD_CHECK := $(shell [ "$$(cat $(CCD_FILE) 2>/dev/null)" = "$$(echo "$(CCFLAGS)")" ] || echo 0 )
   LDD_CHECK := $(shell [ "$$(cat $(LDD_FILE) 2>/dev/null)" = "$$(echo "$(LDFLAGS)")" ] || echo 0 )
 
-  SILENT := $(shell [ -e $(OUT_DIR) ] && $(log_satrt) && echo -n > $(STATUS_FILE))
-  LOG_CHECK := 1
+  LOG_CHECK := $(shell [ -e $(OUT_DIR) ] && $(log_start) && echo -n > $(STATUS_FILE) && echo 1 || echo 0)
 
 ifeq ($(CCD_CHECK),0)
   SILENT := $(shell rm -f $(OUT_DIR)/*.o)
