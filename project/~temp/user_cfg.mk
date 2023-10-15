@@ -47,7 +47,7 @@ USER_DEFS :=
 
 # Add compiler and linker flags (if any)
 CCFLAGS := 
-LDFLAGS := 
+LDFLAGS := -Wl,-Map=$(OUT_DIR)/$(PROJ_RAW).map
 
 #---------------------------------------------------------------------------------#
 #                                   VSCode Debug                                  #
