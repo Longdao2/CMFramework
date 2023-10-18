@@ -22,45 +22,46 @@
   MAKE := make --silent
 
 # Define the colors to display on the console
-  ECHO    :=  echo -e
-  RED     :=  \033[0;31m
-  GREEN   :=  \033[0;32m
-  BLUE    :=  \033[0;34m
-  GRAY    :=  \033[38;2;97;97;97m
-  INVERT  :=  \033[7m
-  RCOLOR  :=  \033[0m
+  ECHO         :=  echo -e
+  RED          :=  \033[0;31m
+  GREEN        :=  \033[0;32m
+  BLUE         :=  \033[0;34m
+  GRAY         :=  \033[38;2;97;97;97m
+  INVERT       :=  \033[7m
+  RCOLOR       :=  \033[0m
 
-  BUILD_VAL := 0
-  LOG_CHECK := 0
-  ZIP ?=
+  BUILD_VAL    := 0
+  ZIP          ?=
 
 # Base paths (start at Framework folder)
-  ROOT_DIR   :=  $(shell pwd | sed -e 's/\/cygdrive\/\(.\)/\1:/')
-  BASE_DIR   :=  $(ROOT_DIR)/project
-  TOOL_DIR   :=  $(ROOT_DIR)/tool
-  SHARE_DIR  :=  $(ROOT_DIR)/share
+  ROOT_DIR     :=  $(shell pwd | sed -e 's/\/cygdrive\/\(.\)/\1:/')
+  BASE_DIR     :=  $(ROOT_DIR)/project
+  TOOL_DIR     :=  $(ROOT_DIR)/tool
+  SHELL_DIR    :=  ./tool/shell
+  SHARE_DIR    :=  $(ROOT_DIR)/share
 
-  TEMP_NAME  :=  ~temp
-  TEMP_DIR   :=  $(BASE_DIR)/$(TEMP_NAME)
-  PROJ_DIR   :=  $(BASE_DIR)/$(PROJ_NAME)
-  OUT_DIR    :=  $(PROJ_DIR)/out
-  DOC_DIR    :=  $(PROJ_DIR)/doc
-  PROJ_RAW   :=  __$(subst /,.,$(PROJ_NAME))
+  TEMP_NAME    :=  ~temp
+  TEMP_DIR     :=  $(BASE_DIR)/$(TEMP_NAME)
+  PROJ_DIR     :=  $(BASE_DIR)/$(PROJ_NAME)
+  OUT_DIR      :=  $(PROJ_DIR)/out
+  DOC_DIR      :=  $(PROJ_DIR)/doc
+  PROJ_RAW     :=  __$(subst /,~,$(PROJ_NAME))
 
   PROJ_OBJ     :=  $(OUT_DIR)/$(PROJ_RAW).o
   PROJ_EXE     :=  $(OUT_DIR)/$(PROJ_RAW).exe
   REPORT_EXE   :=  $(TOOL_DIR)/bin/report.exe
   GCOVR_EXE    :=  gcovr
-  OPEN_URI_EXE :=  cygstart
+  START_EXE    :=  cygstart
 
 # Path to report files
   LOG_FILE     :=  $(OUT_DIR)/$(PROJ_RAW).log
-  STATUS_FILE  :=  $(OUT_DIR)/$(PROJ_RAW).err
+  ERROR_FILE   :=  $(OUT_DIR)/$(PROJ_RAW).err
   REPORT_RAW   :=  $(OUT_DIR)/$(PROJ_RAW).ret
   REPORT_HTML  :=  $(DOC_DIR)/$(PROJ_RAW).html
   CCOV_HTML    :=  $(DOC_DIR)/$(PROJ_RAW)_ccov.html
-  CCD_FILE     :=  $(OUT_DIR)/$(PROJ_RAW).ccd
-  LDD_FILE     :=  $(OUT_DIR)/$(PROJ_RAW).ldd
+  DEPC_FILE    :=  $(SHELL_DIR)/tmp/$(PROJ_RAW)_chk.sh
+  CCD_FILE     :=  $(SHELL_DIR)/tmp/$(PROJ_RAW)_ccd.sh
+  LDD_FILE     :=  $(SHELL_DIR)/tmp/$(PROJ_RAW)_ldd.sh
 
 # Broken if the template project no longer exists
 ifeq ("$(wildcard $(TEMP_DIR)/user_cfg.mk)","")
@@ -76,11 +77,13 @@ endif
 #---------------------------------------------------------------------------------#
 #                                      User                                       #
 #---------------------------------------------------------------------------------#
+
   include $(PROJ_DIR)/user_cfg.mk
 
 #---------------------------------------------------------------------------------#
 #                                     Macros                                      #
 #---------------------------------------------------------------------------------#
+
   include $(TOOL_DIR)/make/macros.mk
 
 #---------------------------------------------------------------------------------#
@@ -127,21 +130,32 @@ endif # MAKECMDGOALS
   LD := $(if $(filter %.cc %.cpp, $(SRC_FILES)), $(PP), $(CC))
 
 # Add compiler flags (if any)
-  CCFLAGS += -c -Wall -Wextra -fmessage-length=0
+  CCFLAGS += -c -Og -W -Wall -Wextra -Wwrite-strings -Wshadow=local -pedantic -fmessage-length=0
   LDFLAGS += -r
 
 # Definitions for testing
-  CCFLAGS +=  -D "UTEST_SUPPORT"               \
-              -D "OUTPATH=\"$(REPORT_RAW)\""   \
-              -D "USER_NAME=\"$(USER_NAME)\""  \
-              -D "PROJ_NAME=\"$(PROJ_NAME)\""  \
-              -D "RUN_CCOV=$(if $(filter $(RUN_CCOV),on),1,0)"
+  CCFLAGS += -D UTEST_SUPPORT -D RUN_CCOV=$(if $(filter $(RUN_CCOV),on),1,0)
 
 # Definitions for the code coverage feature
 ifeq ($(RUN_CCOV), on)
   CCOV_CC += -fprofile-arcs -ftest-coverage
   CCOV_LD += --coverage
 endif # RUN_CCOV == on
+
+#---------------------------------------------------------------------------------#
+#                                     Export                                      #
+#---------------------------------------------------------------------------------#
+
+export \
+  RUN_TIMEOUT   PROJ_EXE      VAR_ARGS      REPORT_RAW    ECHO          RED            \
+  GREEN         BLUE          GRAY          INVERT        RCOLOR        ROOT_DIR       \
+  BASE_DIR      TOOL_DIR      SHARE_DIR     TEMP_NAME     TEMP_DIR      PROJ_DIR       \
+  OUT_DIR       DOC_DIR       PROJ_RAW      PROJ_OBJ      PROJ_EXE      REPORT_EXE     \
+  GCOVR_EXE     LOG_FILE      DEPC_FILE     REPORT_RAW    REPORT_HTML   START_EXE      \
+  CCOV_HTML     CCD_FILE      LDD_FILE      CC            PP            LD             \
+  CCFLAGS       LDFLAGS       CCOV_CC       CCOV_LD       SHELL_DIR     MASK_INC_DIRS  \
+  LIST_BUILD    MERGE_2OBJ    LINK_2EXE     USER_NAME     PROJ_NAME     RUN_CCOV       \
+  DEV_DIR       SHOW_REPORT
 
 #---------------------------------------------------------------------------------#
 #                                      Rules                                      #
@@ -163,11 +177,9 @@ ifneq ($(PROJ_LIST),)
   endif # MAKECMDGOALS
 
 $(word 1,$(MAKECMDGOALS)) _all:
-	@$(foreach CURR_PROJ, $(PROJ_LIST), \
-	$(ECHO) "\n=============== Project: $(CURR_PROJ) ===============" && \
-	[ -e $(BASE_DIR)/$(CURR_PROJ)/user_cfg.mk ] && \
-	$(MAKE) __forced=off PROJ_LIST="" PROJ_NAME=$(CURR_PROJ) $(MAKECMDGOALS) || \
-	(echo && $(call message_error, This project does not exist\n));)
+	@$(foreach CURR_PROJ, $(PROJ_LIST), $(ECHO) "\n=============== Project: $(CURR_PROJ) ===============" && \
+	[ -e $(BASE_DIR)/$(CURR_PROJ)/user_cfg.mk ] && $(MAKE) __forced=off PROJ_LIST="" PROJ_NAME=$(CURR_PROJ) $(MAKECMDGOALS) || \
+	( echo && $(call message_error, This project does not exist\n) );)
 
 $(filter-out $(word 1, $(MAKECMDGOALS)), $(MAKECMDGOALS)):
 	@:
@@ -182,8 +194,9 @@ endif # PROJ_LIST != ""
 #---------------------------------------------------------------------------------#
 
 ifneq ($(__forced),on)
-  ifneq ($(filter %.o quick build $(OUT_DIR)/%.o $(PROJ_EXE) !w!0, $(MAKECMDGOALS) !w!$(words $(MAKECMDGOALS))),)
-    include $(TOOL_DIR)/make/depend.mk
+  ifneq ($(filter quick build %.o $(PROJ_EXE) !w!0, $(MAKECMDGOALS) !w!$(words $(MAKECMDGOALS))),)
+    SILENT := $(shell $(SHELL_DIR)/depend.sh init)
+    -include $(OBJ_FILES:%.o=%.d)
   endif # MAKECMDGOALS
   $(info )
 endif # __forced != on

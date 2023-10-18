@@ -25,47 +25,21 @@ message_green  =  $(ECHO) "$(GREEN)> $(RCOLOR)$(strip $(1))"
 
 message_blue   =  $(ECHO) "$(BLUE)> $(RCOLOR)$(strip $(1))"
 
-clean_output   =  x=$(strip $(1)); $(foreach base, $(2), if [ -e $(base) ]; then if [ $$x = 1 ]; then \
-                  $(call process_start, clean) && x=2; fi && \
-                  $(call message_red, Removing $(base)) && rm -rf $(base); fi;) \
-                  if [ $$x = 2 ]; then $(call process_end, clean); fi
+build_check    =  $(if $(filter $(BUILD_VAL), 1), $(eval BUILD_VAL := 2) $(eval build_start := ) $(call process_start, build) & )
+build_start    =  $(build_check)
+build_end      =  $(call process_end, build) $(eval BUILD_VAL := 0) $(eval build_start = $(build_check))
 
-build_cmd      =  ($(ECHO) "\nINFO" && echo "$(strip $(subst ",\",$(subst \,\\,$(1))))") >> $(LOG_FILE); \
-                  ret=$$(($(1)) 2>&1 || echo -n 1 > $(STATUS_FILE)); \
-                  if ! [ -z "$$ret" ]; then echo ---; echo "$$ret"; echo; ($(ECHO) "\nWARN"; echo "$$ret"; echo) >> $(LOG_FILE); fi
+build_cmd      =  (echo; echo $(strip $(1)); echo) >> $(LOG_FILE); \
+                  log=$$($(1) 2>&1 || touch $(ERROR_FILE)); \
+                  if ! [ -z "$$log" ]; then (echo WARN; echo "$$log"; echo) | tee -a $(LOG_FILE); fi
 
-build_status   =  $(call message_blue, Status: [$$([ "$$(cat $(STATUS_FILE) 2>/dev/null)" = "1" ] && \
-                  ($(ECHO) "$(RED)FAIL$(RCOLOR)" & rm -f $(PROJ_EXE)) || \
-                  $(ECHO) "$(GREEN)PASS$(RCOLOR)")] -> $(LOG_FILE))
-
-build_start    =  $(if $(filter 1, $(BUILD_VAL)), $(eval BUILD_VAL := 2) $(call process_start, build);)
-
-build_process  =  $(build_start) $(call message_green, Compiling from $<); \
-                  $(call build_cmd ,$(1) $(CCFLAGS) $(MASK_INC_DIRS) -MMD -MP -MF"$(@:%.o=%.d)" \
+build_process  =  $(build_start) $(call message_green, Compiling from $<) & \
+                  $(call build_cmd ,$(1) $(CCFLAGS) $(MASK_INC_DIRS) -MMD -MP -MF $(@:%.o=%.d) \
                   $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g3) $(if $(filter $(dir $<),$(DEV_DIR)/),$(CCOV_CC)) $< -o $@)
 
-run_process    =  check=0 && time_start=$$(date +%s%N) && \
-                  timeout --kill-after=0s $(RUN_TIMEOUT) $(PROJ_EXE) $(VAR_ARGS) && retval=$$? || retval=$$?; \
-                  time_end=$$(date +%s%N) && (( time_diff = (time_end - time_start) / 1000000 )) && \
-                  [ $$retval = 124 ] && $(call message_error, $(RUN_TIMEOUT) timeout has expired) || check=1; \
-                  [ -e "$(REPORT_RAW)" ] && $(ECHO) "0.duration = $$time_diff\n0.status = $$check" >> $(REPORT_RAW) || exit 0
-
-report_process =  if [ -e $(REPORT_RAW) ]; then \
-                  $(call message_green, Generating test report to $(REPORT_HTML)); $(report_gen1); \
-                  $(call open_report,test,$(REPORT_HTML)); else $(report_gen2); fi
-
-report_gen1    =  if [ "$(RUN_CCOV)" = "on" ]; then $(REPORT_EXE) $(REPORT_RAW) $(notdir $(CCOV_HTML)) $(REPORT_HTML); \
-                  $(report_gen3); else $(REPORT_EXE) $(REPORT_RAW) "" $(REPORT_HTML); fi
-
-report_gen2    =  if [ "$(RUN_CCOV)" = "on" ]; then $(report_gen3); $(call open_report,ccov,$(CCOV_HTML)); fi
-
-report_gen3    =  $(call message_green, Generating ccov report to $(CCOV_HTML)) && \
-                  $(GCOVR_EXE) --root $(DEV_DIR) --object-directory $(OUT_DIR) --html-details $(CCOV_HTML) || \
-                  $(call message_error, Unable to generate CCOV report)
-
-open_report    =  if [ -e "$(2)" ] && [ "$(SHOW_REPORT)" = "on" ]; then \
-                  $(ECHO) "$(BLUE)> $(RCOLOR)Opening $(1) report in browser" && \
-                  $(OPEN_URI_EXE) $(2) || $(call message_error, Cannot open $(2)); fi
+build_status   =  $(call message_blue, Status: [$$([ -e $(ERROR_FILE) ] && \
+                  ($(ECHO) "$(RED)FAIL$(RCOLOR)" & rm -f $(PROJ_EXE)) || \
+                  $(ECHO) "$(GREEN)PASS$(RCOLOR)")] -> $(LOG_FILE))
 
 curr_project   =  $(eval CURR_PROJ_NAME := $(1)) $(eval PROJ_DIR := $(BASE_DIR)/$(CURR_PROJ_NAME))
 
@@ -102,10 +76,9 @@ export_clean   =  for f in $$(find $(PROJ_DIR) -type d -name "$(notdir $(OUT_DIR
 
 export_err     =  $(call message_error, The [$(CURR_PROJ_NAME)] project/group does not exist)
 
-export_process =  $(call message_green, Compressing to $(SHARE_DIR)/__$(subst /,.,$(CURR_PROJ_NAME)).zip) && \
-                  cd "$(PROJ_DIR)" && zip -r $(SHARE_DIR)/__$(subst /,.,$(CURR_PROJ_NAME)).zip ./*
-
-log_start      =  (echo; echo; date +'========================= '%H:%M:%S' '%Y-%m-%d' ========================='; echo) >> $(LOG_FILE)
+export_process =  $(eval EXPORT_FILE := $(SHARE_DIR)/__$(subst /,.,$(CURR_PROJ_NAME)).zip) \
+                  $(call message_green, Compressing to $(EXPORT_FILE)); \
+                  cd "$(PROJ_DIR)"; zip -r $(EXPORT_FILE) ./*
 
 #---------------------------------------------------------------------------------#
 #                                   End of file                                   #

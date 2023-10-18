@@ -29,7 +29,7 @@ force: clean build run
 # Details: Initialize tools that allow certain special features to work
 #
 setup: $(TLS_EXE_NAMES)
-	@$(MAKE) __forced=on vsinit
+	@rm -rf $(SHELL_DIR)/tmp; mkdir -p $(SHELL_DIR)/tmp & $(MAKE) __forced=on vsinit
 
 $(TLS_EXE_NAMES): %.exe: %.o
 	@$(CC) $< -o $(TOOL_DIR)/bin/$@
@@ -53,38 +53,34 @@ info:
 # Details: Clean all files in project output
 #
 clean:
-	@$(call clean_output, 1, $(OUT_DIR) $(REPORT_HTML) $(shell ls $(DOC_DIR)/$(PROJ_RAW)_ccov.* 2>/dev/null))
-	@$(eval CCD_CHECK := 0) $(eval LDD_CHECK := 0)
+	@$(SHELL_DIR)/clean.sh
 
 # =================================================================================
 # Command: [make build]
 # Details: Compile all source files in project
 #
-build: _s_build $(OUT_DIR) $(OBJ_FILES) $(PROJ_OBJ) $(PROJ_EXE)
-	@$(if $(filter 2,$(BUILD_VAL)), $(build_status); $(call process_end, build) $(eval BUILD_VAL := 0))
+build: _s_build $(OBJ_FILES) $(PROJ_OBJ) $(PROJ_EXE) | _check_project
+	@$(if $(filter $(BUILD_VAL), 2), $(build_status); $(build_end))
 
 $(PROJ_OBJ): $(OBJ_FILES) | $(OUT_DIR) _check_depend
-	@$(build_start) $(call message_blue, Merging to $@)
-	@$(call build_cmd, $(LD) $(LDFLAGS) $(OBJ_FILES) -o $@)
+	@$(build_start) $(call message_blue, Merging to $@) & \
+	$(call build_cmd, $(LD) $(LDFLAGS) $(OBJ_FILES) -o $@)
 
 $(PROJ_EXE): $(PROJ_OBJ) | $(OUT_DIR)
-	@$(build_start) $(call message_blue, Linking to $(PROJ_EXE))
-	@$(call build_cmd, $(LD) $< -o $(PROJ_EXE))
+	@$(build_start) $(call message_blue, Linking to $(PROJ_EXE)) & \
+	$(call build_cmd, $(LD) $< -o $(PROJ_EXE))
 
 $(OUT_DIR):
-	@$(build_start) $(call message_red, Adding $@) && mkdir -p $@
+	@$(build_start) $(call message_blue, Adding $@) & mkdir -p $@
 
-_s_build: | _check_project
+_s_build:
 	@$(eval BUILD_VAL := 1)
 
 _check_project:
-	@$(if $(filter $(PROJ_NAME),$(TEMP_NAME)), \
-	$(error Some features are limited on template project. Please create or move to another project))
+	@$(if $(filter $(PROJ_NAME),$(TEMP_NAME)), $(error Some features are limited on template project. Please create or move to another project))
 
 _check_depend:
-	@$(if $(filter 0, $(CCD_CHECK)), $(eval CCD_CHECK := 1) $(build_start) echo "$(CCFLAGS)" > $(CCD_FILE))
-	@$(if $(filter 0, $(LDD_CHECK)), $(eval LDD_CHECK := 1) $(build_start) echo "$(LDFLAGS)" > $(LDD_FILE))
-	@$(if $(filter 0, $(LOG_CHECK)), $(eval LOG_CHECK := 1) $(log_start))
+	@rm -f $(ERROR_FILE) & $(SHELL_DIR)/depend.sh generate
 
 # =================================================================================
 # Command: [make <src_name>.o]
@@ -93,35 +89,30 @@ _check_depend:
 $(OUT_DIR)/%.o: %.c   | _check_project $(OUT_DIR) _check_depend ; @$(call build_process, $(CC))
 $(OUT_DIR)/%.o: %.cpp | _check_project $(OUT_DIR) _check_depend ; @$(call build_process, $(PP))
 $(OUT_DIR)/%.o: %.cc  | _check_project $(OUT_DIR) _check_depend ; @$(call build_process, $(PP))
-$(OBJ_NAMES): %.o: $(OUT_DIR)/%.o | _check_project $(OUT_DIR) _check_depend ; @:
+
+$(OBJ_NAMES): %.o: $(OUT_DIR)/%.o ; @:
 
 # =================================================================================
 # Command: [make run]
 # Details: Run the executable already in the project
 #
 run: | _check_project
-	@$(call process_start, run)
-	@[ -e $(PROJ_EXE) ] && ( $(run_process) ) || $(call message_error, [$(PROJ_EXE)] does not exist)
-	@$(call process_end, run)
+	@$(SHELL_DIR)/run.sh
 
 # =================================================================================
 # Command: [make report]
 # Details: Generate test report after running the program (use tptest.h)
 #
 report: | _check_project
-	@if ! [ "$$(ls $(OUT_DIR)/*.{ret,gcno} 2>/dev/null)" = "" ]; then \
-	$(call process_start, report); \
-	$(call clean_output, 0, $(REPORT_HTML) $(shell ls $(DOC_DIR)/$(PROJ_RAW)_ccov.* 2>/dev/null)); \
-	$(report_process); \
-	$(call process_end, report); fi
+	@$(SHELL_DIR)/report.sh
 
 # =================================================================================
 # Command: [make vsinit]
 # Details: Configure VSCode so that the software links to the correct path (only support GDB)
 #
 vsinit:
-	@mkdir -p $(ROOT_DIR)/.vscode
-	@$(TOOL_DIR)/bin/vsinit.exe '$(PROJ_EXE)' '$(STOP_AT_ENTRY)' '$(EXTERNAL_CONSOLE)' $(MASK_INC_DIRS) $(VAR_ARGS)
+	@mkdir -p $(ROOT_DIR)/.vscode; \
+	$(TOOL_DIR)/bin/vsinit.exe '$(PROJ_EXE)' '$(STOP_AT_ENTRY)' '$(EXTERNAL_CONSOLE)' $(MASK_INC_DIRS) $(VAR_ARGS)
 
 # =================================================================================
 # Command: [make list]
@@ -168,7 +159,7 @@ $(filter export.%, $(MAKECMDGOALS)): | $(SHARE_DIR)
 	@$(call process_end, export)
 
 $(SHARE_DIR):
-	@$(call message_red, Adding $@) && mkdir -p $@
+	@$(call message_blue, Adding $@) && mkdir -p $@
 
 # =================================================================================
 # Command: [make print.<var1>.<var2>...]

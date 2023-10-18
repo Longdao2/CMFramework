@@ -17,6 +17,7 @@ extern "C" {
 >>>                                Includes
 --------------------------------------------------------------------------- */
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 #include "duration.h"
 
@@ -95,12 +96,18 @@ typedef struct
 
 /* ======================================================================== */
 
+#define REPORT_RAW  getenv("REPORT_RAW")
+#define USER_NAME   getenv("USER_NAME")
+#define PROJ_NAME   getenv("PROJ_NAME")
+
+/* ======================================================================== */
+
 #define UT_DEF_S const UT_TestCase_t __ut_all_tests[] = {
 
 /* ======================================================================== */
 
 #define UT_AddTest(name_test, brief) \
-    (UT_TestCase_t){name_test, (char *)#name_test, (char *)#brief},
+    {name_test, (char *)#name_test, (char *)#brief},
 
 /* ======================================================================== */
 
@@ -121,8 +128,8 @@ typedef struct
         strftime(formattedTime, sizeof(formattedTime), "%H:%M:%S %m-%d-%Y", localTime); \
         \
         /* Write File */ \
-        remove(OUTPATH); \
-        ut_init(OUTPATH); \
+        remove(REPORT_RAW); \
+        ut_init(REPORT_RAW); \
         ut_setvar(0, "all_test", __ut_all_tests_size); \
         ut_setvar_s(0, "exe_time", formattedTime); \
         ut_setvar_s(0, "user_name", USER_NAME); \
