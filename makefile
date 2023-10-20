@@ -31,7 +31,6 @@
   RCOLOR       :=  \033[0m
 
   BUILD_VAL    := 0
-  ZIP          ?=
 
 # Base paths (start at Framework folder)
   ROOT_DIR     :=  $(shell pwd | sed -e 's/\/cygdrive\/\(.\)/\1:/')
@@ -63,6 +62,16 @@
   CCD_FILE     :=  $(SHELL_DIR)/tmp/$(PROJ_RAW)_ccd.sh
   LDD_FILE     :=  $(SHELL_DIR)/tmp/$(PROJ_RAW)_ldd.sh
 
+#---------------------------------------------------------------------------------#
+#                                     Export                                      #
+#---------------------------------------------------------------------------------#
+
+  include $(TOOL_DIR)/make/export.mk
+
+#---------------------------------------------------------------------------------#
+#                                    Validate                                     #
+#---------------------------------------------------------------------------------#
+
 # Broken if the template project no longer exists
 ifeq ("$(wildcard $(TEMP_DIR)/user_cfg.mk)","")
   $(error Serious! Template project no longer exists, this framework is broken)
@@ -70,7 +79,7 @@ endif
 
 # If the project directory is empty, should be "./path/to/project"
 ifeq ("$(wildcard $(PROJ_DIR)/user_cfg.mk)","")
-  SILENT := $(shell $(MAKE) __forced=on PROJ_NAME=$(TEMP_NAME) move.$(TEMP_NAME))
+  SILENT := $(shell $(SHELL_DIR)/project.sh move $(TEMP_NAME))
   $(error Project [$(PROJ_NAME)] has ceased to exist. So it was brought back to the template project)
 endif
 
@@ -93,15 +102,13 @@ endif
 # Check input parameters are valid
 ifneq ($(filter move.% remove.% import.% export.%, $(MAKECMDGOALS)),)
   ifneq ($(words $(MAKECMDGOALS)),1)
-    $(error You can only use the command [move], [remove], [import] or [export] individually)
+    $(error You can only use the option [move], [remove], [import] or [export] individually)
   endif # MAKECMDGOALS
 endif # MAKECMDGOALS
 
 # Search all source files in the project
-  SRC_FILES += $(foreach SRC_DIR,$(SRC_DIRS),$(wildcard $(SRC_DIR)/*.c)) \
-               $(foreach SRC_DIR,$(SRC_DIRS),$(wildcard $(SRC_DIR)/*.cpp)) \
-               $(foreach SRC_DIR,$(SRC_DIRS),$(wildcard $(SRC_DIR)/*.cc))
-  OBJ_FILES := $(foreach SRC_DIR,$(SRC_DIRS),$(wildcard $(SRC_DIR)/*.o))
+  SRC_FILES += $(foreach SRC_DIR, $(SRC_DIRS), $(wildcard $(SRC_DIR)/*.c $(SRC_DIR)/*.cc $(SRC_DIR)/*.cpp))
+  OBJ_FILES := $(foreach SRC_DIR, $(SRC_DIRS), $(wildcard $(SRC_DIR)/*.o))
 
 # List of source code files that do not support debugging
   SRC_NODEBUG_FILES += utest.c
@@ -116,9 +123,7 @@ endif # MAKECMDGOALS
   vpath %.o   $(sort $(dir $(OBJ_FILES)) $(TOOL_DIR)/bin/obj)
 
 # Parsing file names in the project
-  OBJ_NAMES := $(notdir $(SRC_FILES:%.c=%.o))
-  OBJ_NAMES := $(notdir $(OBJ_NAMES:%.cpp=%.o))
-  OBJ_NAMES := $(notdir $(OBJ_NAMES:%.cc=%.o))
+  OBJ_NAMES := $(notdir $(shell echo "$(SRC_FILES)" | sed 's/\.[^.]*\(\s\|$$\)/.o /g'))
   OBJ_FILES += $(addprefix $(OUT_DIR)/,$(OBJ_NAMES))
 
 # Add prefix to the directory containing the header file
@@ -129,10 +134,6 @@ endif # MAKECMDGOALS
   PP := g++
   LD := $(if $(filter %.cc %.cpp, $(SRC_FILES)), $(PP), $(CC))
 
-# Add compiler flags (if any)
-  CCFLAGS += -c -Og -W -Wall -Wextra -Wwrite-strings -Wshadow=local -pedantic -fmessage-length=0
-  LDFLAGS += -r
-
 # Definitions for testing
   CCFLAGS += -D UTEST_SUPPORT -D RUN_CCOV=$(if $(filter $(RUN_CCOV),on),1,0)
 
@@ -141,21 +142,6 @@ ifeq ($(RUN_CCOV), on)
   CCOV_CC += -fprofile-arcs -ftest-coverage
   CCOV_LD += --coverage
 endif # RUN_CCOV == on
-
-#---------------------------------------------------------------------------------#
-#                                     Export                                      #
-#---------------------------------------------------------------------------------#
-
-export \
-  RUN_TIMEOUT   PROJ_EXE      VAR_ARGS      REPORT_RAW    ECHO          RED            \
-  GREEN         BLUE          GRAY          INVERT        RCOLOR        ROOT_DIR       \
-  BASE_DIR      TOOL_DIR      SHARE_DIR     TEMP_NAME     TEMP_DIR      PROJ_DIR       \
-  OUT_DIR       DOC_DIR       PROJ_RAW      PROJ_OBJ      PROJ_EXE      REPORT_EXE     \
-  GCOVR_EXE     LOG_FILE      DEPC_FILE     REPORT_RAW    REPORT_HTML   START_EXE      \
-  CCOV_HTML     CCD_FILE      LDD_FILE      CC            PP            LD             \
-  CCFLAGS       LDFLAGS       CCOV_CC       CCOV_LD       SHELL_DIR     MASK_INC_DIRS  \
-  LIST_BUILD    MERGE_2OBJ    LINK_2EXE     USER_NAME     PROJ_NAME     RUN_CCOV       \
-  DEV_DIR       SHOW_REPORT
 
 #---------------------------------------------------------------------------------#
 #                                      Rules                                      #
@@ -173,19 +159,20 @@ ifneq ($(PROJ_LIST),)
   __forced := on
 
   ifneq ($(filter move.% remove.% import.% export.%, $(MAKECMDGOALS)),)
-    $(error Features [move], [remove], [import] and [export] cannot be used in the list of projects)
+    $(error Options [move], [remove], [import] and [export] cannot be used in the list of projects)
   endif # MAKECMDGOALS
 
 $(word 1,$(MAKECMDGOALS)) _all:
-	@$(foreach CURR_PROJ, $(PROJ_LIST), $(ECHO) "\n=============== Project: $(CURR_PROJ) ===============" && \
-	[ -e $(BASE_DIR)/$(CURR_PROJ)/user_cfg.mk ] && $(MAKE) __forced=off PROJ_LIST="" PROJ_NAME=$(CURR_PROJ) $(MAKECMDGOALS) || \
-	( echo && $(call message_error, This project does not exist\n) );)
+	@$(foreach CURR_PROJ, $(PROJ_LIST), $(ECHO) "\n=============== Project: $(CURR_PROJ) ==============="; \
+	if [ -e $(BASE_DIR)/$(CURR_PROJ)/user_cfg.mk ]; then $(MAKE) PROJ_LIST="" PROJ_NAME=$(CURR_PROJ) $(MAKECMDGOALS); \
+	else echo; $(call message_error, This project does not exist\n); fi; )
 
 $(filter-out $(word 1, $(MAKECMDGOALS)), $(MAKECMDGOALS)):
 	@:
 
 # Rules for each project
 else # PROJ_LIST == ""
+  BUILD_CHECK := _check_project $(OUT_DIR) _check_depend
   include $(TOOL_DIR)/make/rules.mk
 endif # PROJ_LIST != ""
 
