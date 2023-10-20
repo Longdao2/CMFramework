@@ -14,13 +14,13 @@
 
 # =================================================================================
 # Command: [make quick] - Default
-# Details: 
+# Details: Build quickly and run the executable file
 #
 quick: build run
 
 # =================================================================================
 # Command: [make force]
-# Details: 
+# Details: Clean the output, rebuild, and run the executable file
 #
 force: clean build run
 
@@ -57,16 +57,16 @@ clean:
 
 # =================================================================================
 # Command: [make build]
-# Details: Compile all source files in project
+# Details: Compile all source files in the project and link into an executable
 #
-build: _s_build $(OBJ_FILES) $(PROJ_OBJ) $(PROJ_EXE) | _check_project
-	@$(if $(filter $(BUILD_VAL), 2), $(build_status); $(build_end))
+build: _s_build $(PROJ_EXE)
+	@$(if $(filter $(BUILD_VAL), 2), $(build_status); $(build_end)) $(eval BUILD_VAL := 0)
 
-$(PROJ_OBJ): $(OBJ_FILES) | $(OUT_DIR) _check_depend
+$(PROJ_OBJ): $(OBJ_FILES) | $(BUILD_CHECK)
 	@$(build_start) $(call message_blue, Merging to $@) & \
 	$(call build_cmd, $(LD) $(LDFLAGS) $(OBJ_FILES) -o $@)
 
-$(PROJ_EXE): $(PROJ_OBJ) | $(OUT_DIR)
+$(PROJ_EXE): $(PROJ_OBJ) | $(BUILD_CHECK)
 	@$(build_start) $(call message_blue, Linking to $(PROJ_EXE)) & \
 	$(call build_cmd, $(LD) $< -o $(PROJ_EXE))
 
@@ -84,11 +84,11 @@ _check_depend:
 
 # =================================================================================
 # Command: [make <src_name>.o]
-# Details: Compile of a particular c/cpp/cc file to the corresponding o file
+# Details: Compile the specific c/cpp/cc file to the corresponding o file
 #
-$(OUT_DIR)/%.o: %.c   | _check_project $(OUT_DIR) _check_depend ; @$(call build_process, $(CC))
-$(OUT_DIR)/%.o: %.cpp | _check_project $(OUT_DIR) _check_depend ; @$(call build_process, $(PP))
-$(OUT_DIR)/%.o: %.cc  | _check_project $(OUT_DIR) _check_depend ; @$(call build_process, $(PP))
+$(OUT_DIR)/%.o: %.c   | $(BUILD_CHECK) ; @$(call build_process, $(CC))
+$(OUT_DIR)/%.o: %.cpp | $(BUILD_CHECK) ; @$(call build_process, $(PP))
+$(OUT_DIR)/%.o: %.cc  | $(BUILD_CHECK) ; @$(call build_process, $(PP))
 
 $(OBJ_NAMES): %.o: $(OUT_DIR)/%.o ; @:
 
@@ -126,40 +126,30 @@ list:
 # Details: Move to new project (automatically create if it doesn't exist)
 #
 $(filter move.%, $(MAKECMDGOALS)):
-	@$(call process_start, move) $(call curr_project, $(@:move.%=%))
-	@$(if $(wildcard $(PROJ_DIR)), $(if $(wildcard $(PROJ_DIR)/user_cfg.mk), $(move_proj), $(move_error)), $(create_proj) && $(move_proj) || :;)
-	@$(call process_end, move)
+	@$(SHELL_DIR)/project.sh move $(call convert_path, move)
 
 # =================================================================================
 # Command: [make remove.{project}/{group}]
-# Details: Remove an existing project/group
+# Details: Remove an existing project or group
 #
 $(filter remove.%, $(MAKECMDGOALS)):
-	@$(call process_start, remove) $(call curr_project, $(@:remove.%=%))
-	@$(if $(wildcard $(PROJ_DIR)), $(if $(filter $(PROJ_DIR),$(TEMP_DIR)), $(remove_err2), $(remove_proj)) || :, $(remove_err1))
-	@$(call process_end, remove)
+	@$(SHELL_DIR)/project.sh remove $(call convert_path, remove)
 
 # =================================================================================
-# Command: [make import.{name} ZIP=<path/to/zip>]
-# Details: Import a shared project/group from any CMFramework
+# Command: [make import.{name} zip=<path/to/zip>
+# Details: Import a shared project or group from any CMFramework
 #
 $(filter import.%, $(MAKECMDGOALS)):
-	@$(call process_start, import) $(call curr_project, $(@:import.%=%))
-	@$(if $(filter $(words $(ZIP)),1), $(if $(filter %.zip, $(wildcard $(subst \,/,$(ZIP)))), \
-	 $(if $(wildcard $(PROJ_DIR)), $(import_err2), $(import_proj)), $(import_err1)), $(import_err1))
-	@$(call process_end, import)
+	@$(SHELL_DIR)/project.sh import $(call convert_path, import) $(subst \,/,$(zip))
 
 # =================================================================================
 # Command: [make export.{project}/{group}]
-# Details: Pack your project/group ready to share
+# Details: Pack your project or group ready to share
 #
 $(filter export.%, $(MAKECMDGOALS)): | $(SHARE_DIR)
-	@$(call process_start, export) $(call curr_project, $(@:export.%=%))
-	@$(if $(wildcard $(PROJ_DIR)), $(export_clean) && $(export_process), $(export_err))
-	@$(call process_end, export)
+	@$(SHELL_DIR)/project.sh export $(call convert_path, export)
 
-$(SHARE_DIR):
-	@$(call message_blue, Adding $@) && mkdir -p $@
+$(SHARE_DIR): ; @mkdir -p $@
 
 # =================================================================================
 # Command: [make print.<var1>.<var2>...]

@@ -45,9 +45,9 @@ VAR_ARGS :=
 # Add user definitions (if any)
 USER_DEFS := 
 
-# Add compiler and linker flags (if any)
-CCFLAGS := 
-LDFLAGS := -Wl,-Map=$(OUT_DIR)/$(PROJ_RAW).map
+# Add compiler and linker flags
+CCFLAGS := -c -Og -W -Wall -Wextra -Wwrite-strings -Wshadow=local -pedantic -fmessage-length=0
+LDFLAGS := -r -Wl,-Map=$(OUT_DIR)/$(PROJ_RAW).map
 
 #---------------------------------------------------------------------------------#
 #                                   VSCode Debug                                  #
