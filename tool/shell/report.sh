@@ -3,20 +3,8 @@
 #   REPORT_RAW  RUN_CCOV    REPORT_EXE   CCOV_HTML   GCOVR_EXE
 #   DEV_DIR     START_EXE   SHOW_REPORT
 
-source $SHELL_DIR/common.sh
 
-function gen_ccov() {
-  message_green "Generating ccov report to $CCOV_HTML" & \
-  $GCOVR_EXE --root $DEV_DIR --object-directory $OUT_DIR --html-details $CCOV_HTML || \
-  message_error "CCOV report generation failed"
-}
-
-function open_report() {  #  name_report | url
-  if [ -e "$2" ] && [ "$SHOW_REPORT" = "on" ]; then
-    message_blue "Opening $1 report in browser" & \
-    $START_EXE "$2" || message_error "Cannot open [$2]"
-  fi
-}
+source $SHELL_DIR/apis.sh
 
 if ! [ "$(ls -f $OUT_DIR/*.{ret,gcno} 2>/dev/null)" = "" ]; then
 

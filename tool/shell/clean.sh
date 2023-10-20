@@ -5,7 +5,7 @@
 # export PROJ_RAW
 
 
-source $SHELL_DIR/common.sh
+source $SHELL_DIR/apis.sh
 
 echo "check=3" > $DEPC_FILE
 list="$(ls -d $OUT_DIR -f $REPORT_HTML $DOC_DIR/$PROJ_RAW""_ccov.* 2>/dev/null)"

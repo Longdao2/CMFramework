@@ -4,7 +4,7 @@
 # export VAR_ARGS
 # export REPORT_RAW
 
-source $SHELL_DIR/common.sh
+source $SHELL_DIR/apis.sh
 
 process_start run
 
@@ -18,8 +18,15 @@ if [ -e $PROJ_EXE ]; then
 
   (( time_diff = (time_end - time_start) / 1000000 - 10 ))
 
-  [ $retval = 124 ] && message_error "$RUN_TIMEOUT timeout has expired" || check=1
-  [ -e "$REPORT_RAW" ] && $ECHO "0.duration = $time_diff\n0.status = $check" >> $REPORT_RAW || exit 0
+  if [ $retval = 124 ]; then
+    message_error "$RUN_TIMEOUT timeout has expired"
+  else
+    check=1
+  fi
+
+  if [ -e "$REPORT_RAW" ]; then
+    $ECHO "0.duration = $time_diff\n0.status = $check" >> $REPORT_RAW
+  fi
 
 else
   message_error "[$PROJ_EXE] does not exist"
