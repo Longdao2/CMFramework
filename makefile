@@ -2,8 +2,8 @@
 # File         makefile                                                           #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.3                                                              #
-# Update       10-04-2023                                                         #
+# Version      1.0.5                                                              #
+# Release      10-30-2023                                                         #
 # Copyright    2023 (c) Belongs to Louisvn                                        #
 # Details      C/C++ project management tool - [MK] Main                          #
 #=================================================================================#
@@ -128,7 +128,7 @@ endif # MAKECMDGOALS
   OBJ_FILES += $(addprefix $(OUT_DIR)/,$(OBJ_NAMES))
 
 # Add prefix to the directory containing the header file
-  MASK_INC_DIRS := $(addprefix -I ,$(INC_DIRS))
+  MASK_INC_DIRS := $(addprefix -I,$(INC_DIRS))
 
 # Config for each programming language
   CC := gcc
@@ -136,7 +136,7 @@ endif # MAKECMDGOALS
   LD := $(if $(filter %.cc %.cpp, $(SRC_FILES)), $(PP), $(CC))
 
 # Definitions for testing
-  CCFLAGS += -D UTEST_SUPPORT -D RUN_CCOV=$(if $(filter $(RUN_CCOV),on),1,0)
+  CCFLAGS += -DUTEST_SUPPORT -DRUN_CCOV=$(if $(filter $(RUN_CCOV),on),1,0)
 
 # Definitions for the code coverage feature
 ifeq ($(RUN_CCOV), on)
@@ -183,7 +183,7 @@ endif # PROJ_LIST != ""
 
 ifneq ($(__forced),on)
   ifneq ($(filter quick build %.o $(PROJ_EXE) !w!0, $(MAKECMDGOALS) !w!$(words $(MAKECMDGOALS))),)
-    SILENT := $(shell $(SHELL_DIR)/depend.sh init)
+    SILENT := $(shell $(SHELL_DIR)/actions.sh depend_init)
     -include $(OBJ_FILES:%.o=%.d)
   endif # MAKECMDGOALS
   $(info )

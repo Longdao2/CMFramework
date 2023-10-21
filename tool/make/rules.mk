@@ -2,8 +2,8 @@
 # File         rules.mk                                                           #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.3                                                              #
-# Update       10-04-2023                                                         #
+# Version      1.0.5                                                              #
+# Release      10-30-2023                                                         #
 # Copyright    2023 (c) Belongs to Louisvn                                        #
 # Details      C/C++ project management tool - [MK] Rules                         #
 #=================================================================================#
@@ -26,13 +26,10 @@ force: clean build run
 
 # =================================================================================
 # Command: [make setup]
-# Details: Initialize tools that allow certain special features to work
+# Details: Initialize (or reinitialize) the Framework
 #
-setup: $(TLS_EXE_NAMES)
+setup:
 	@rm -rf $(SHELL_DIR)/tmp; mkdir -p $(SHELL_DIR)/tmp & $(MAKE) __forced=on vsinit
-
-$(TLS_EXE_NAMES): %.exe: %.o
-	@$(CC) $< -o $(TOOL_DIR)/bin/$@
 
 # =================================================================================
 # Command: [make info]
@@ -53,7 +50,7 @@ info:
 # Details: Clean all files in project output
 #
 clean:
-	@$(SHELL_DIR)/clean.sh
+	@$(SHELL_DIR)/actions.sh clean
 
 # =================================================================================
 # Command: [make build]
@@ -80,7 +77,7 @@ _check_project:
 	@$(if $(filter $(PROJ_NAME),$(TEMP_NAME)), $(error Some features are limited on template project. Please create or move to another project))
 
 _check_depend:
-	@rm -f $(ERROR_FILE) & $(SHELL_DIR)/depend.sh generate
+	@rm -f $(ERROR_FILE) & $(SHELL_DIR)/actions.sh depend_update
 
 # =================================================================================
 # Command: [make <src_name>.o]
@@ -97,22 +94,21 @@ $(OBJ_NAMES): %.o: $(OUT_DIR)/%.o ; @:
 # Details: Run the executable already in the project
 #
 run: | _check_project
-	@$(SHELL_DIR)/run.sh
+	@$(SHELL_DIR)/actions.sh run
 
 # =================================================================================
 # Command: [make report]
-# Details: Generate test report after running the program (use tptest.h)
+# Details: Generate test report after running the program
 #
 report: | _check_project
-	@$(SHELL_DIR)/report.sh
+	@$(SHELL_DIR)/actions.sh report
 
 # =================================================================================
 # Command: [make vsinit]
 # Details: Configure VSCode so that the software links to the correct path (only support GDB)
 #
 vsinit:
-	@mkdir -p $(ROOT_DIR)/.vscode; \
-	$(TOOL_DIR)/bin/vsinit.exe '$(PROJ_EXE)' '$(STOP_AT_ENTRY)' '$(EXTERNAL_CONSOLE)' $(MASK_INC_DIRS) $(VAR_ARGS)
+	@$(SHELL_DIR)/actions.sh vsinit
 
 # =================================================================================
 # Command: [make list]
@@ -126,28 +122,28 @@ list:
 # Details: Move to new project (automatically create if it doesn't exist)
 #
 $(filter move.%, $(MAKECMDGOALS)):
-	@$(SHELL_DIR)/project.sh move $(call convert_path, move)
+	@$(SHELL_DIR)/actions.sh move $(call convert_path, move)
 
 # =================================================================================
 # Command: [make remove.{project}/{group}]
 # Details: Remove an existing project or group
 #
 $(filter remove.%, $(MAKECMDGOALS)):
-	@$(SHELL_DIR)/project.sh remove $(call convert_path, remove)
+	@$(SHELL_DIR)/actions.sh remove $(call convert_path, remove)
 
 # =================================================================================
 # Command: [make import.{name} zip=<path/to/zip>
 # Details: Import a shared project or group from any CMFramework
 #
 $(filter import.%, $(MAKECMDGOALS)):
-	@$(SHELL_DIR)/project.sh import $(call convert_path, import) $(subst \,/,$(zip))
+	@$(SHELL_DIR)/actions.sh import $(call convert_path, import) $(subst \,/,$(zip))
 
 # =================================================================================
 # Command: [make export.{project}/{group}]
 # Details: Pack your project or group ready to share
 #
 $(filter export.%, $(MAKECMDGOALS)): | $(SHARE_DIR)
-	@$(SHELL_DIR)/project.sh export $(call convert_path, export)
+	@$(SHELL_DIR)/actions.sh export $(call convert_path, export)
 
 $(SHARE_DIR): ; @mkdir -p $@
 

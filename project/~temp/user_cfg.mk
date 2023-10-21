@@ -1,9 +1,9 @@
 #=================================================================================#
 # File         user_cfg.mk                                                        #
 # Author       ...                                                                #
-# About        ...                                                                #
-# Version      1.0.0                                                              #
-# Update       00-00-0000                                                         #
+# Version      1.0.5                                                              #
+# Release      10-30-2023                                                         #
+# Copyright    2023 (c) Belongs to Louisvn                                        #
 # Details      Specific config for project                                        #
 #=================================================================================#
 
@@ -15,7 +15,7 @@
 USER_NAME := Your Full Name
 
 # Run with time out (seconds)
-RUN_TIMEOUT := 30.0s
+RUN_TIMEOUT := 1.0s
 
 # Run with CCOV report (on/off)
 RUN_CCOV := off
