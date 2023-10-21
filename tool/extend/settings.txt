@@ -1,0 +1,16 @@
+{
+  "code-runner.executorMap":
+  {
+    "c": "make # $fileNameWithoutExt",
+    "cpp": "make # $fileNameWithoutExt",
+    "h": "make # $fileNameWithoutExt",
+    "makefile": "make # $fileName"
+  },
+
+  "files.exclude":
+  {
+    "**/.git**": true,
+    "**/[[SED_TEMP_NAME]]": true,
+    ".vscode": true
+  }
+}
