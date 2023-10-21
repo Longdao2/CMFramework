@@ -19,7 +19,7 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "duration.h"
+#include <profileapi.h>
 
 /** -----------------------------------------------------------------------
 >>>                               Definitions
@@ -155,7 +155,9 @@ typedef struct
     extern const UT_TestCase_t __ut_all_tests[]; \
     extern const uint_t __ut_all_tests_size; \
     extern unsigned char __ut_test_checker; \
-    duration_init(); \
+    extern LARGE_INTEGER __du_freq, __du_start, __du_end; \
+    extern double __du_elapsed; \
+    QueryPerformanceFrequency( &__du_freq ); \
     \
     /* Run and Update results */ \
     for (uint_t index_case = 0; index_case < __ut_all_tests_size; index_case++) { \
@@ -164,13 +166,14 @@ typedef struct
         \
         /* Run test and get status */ \
         __ut_test_checker = 1; \
-        duration_start(); \
+        QueryPerformanceCounter( &__du_start ); \
         __ut_all_tests[index_case].func(); \
-        duration_end(); \
+        QueryPerformanceCounter( &__du_end ); \
+        __du_elapsed = (( double )( __du_end.QuadPart - __du_start.QuadPart ) / __du_freq.QuadPart ) * 1000; \
         \
         /* Update status */ \
         ut_setvar(index_case + 1, "status", __ut_test_checker); \
-        ut_setvar(index_case + 1, "duration", (uint_t)(DURATION_VALUE * 1000.0)); \
+        ut_setvar(index_case + 1, "duration", (uint_t)(__du_elapsed * 1000.0)); \
         \
         /* Display result */ \
         if (1 == __ut_test_checker) { \
