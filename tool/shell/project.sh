@@ -1,10 +1,34 @@
+#=================================================================================#
+# File         project.sh                                                         #
+# Author       Long Dao                                                           #
+# About        https://louisvn.com                                                #
+# Version      1.0.3                                                              #
+# Update       10-04-2023                                                         #
+# Copyright    2023 (c) Belongs to Louisvn                                        #
+# Details      C/C++ project management tool - [SH] (Re)Move /Im/Export           #
+#=================================================================================#
+
+#---------------------------------------------------------------------------------#
+#                                    Includes                                     #
+#---------------------------------------------------------------------------------#
 
 source $SHELL_DIR/apis.sh
+
+#---------------------------------------------------------------------------------#
+#                                   Definitions                                   #
+#---------------------------------------------------------------------------------#
 
 NEWPROJ_NAME="$2"  #  project_name
 NEWPROJ_DIR="$BASE_DIR/$NEWPROJ_NAME"
 
-# Move
+#---------------------------------------------------------------------------------#
+#                                     Process                                     #
+#---------------------------------------------------------------------------------#
+
+# =================================================================================
+# Case 01 : Move
+# Details : Move to a different project
+#
 if [ "$1" = "move" ]; then
   process_start move
 
@@ -29,7 +53,10 @@ if [ "$1" = "move" ]; then
 
   process_end move
 
-# Remove
+# =================================================================================
+# Case 02 : Remove
+# Details : Remove a project or group
+#
 elif [ "$1" = "remove" ]; then
   process_start remove
 
@@ -49,7 +76,10 @@ elif [ "$1" = "remove" ]; then
 
   process_end remove
 
-# import
+# =================================================================================
+# Case 03 : Import
+# Details : Import a packaged project or group
+#
 elif [ "$1" = "import" ]; then
   process_start import
 
@@ -68,7 +98,10 @@ elif [ "$1" = "import" ]; then
 
   process_end import
 
-# export
+# =================================================================================
+# Case 04 : Export
+# Details : Package a project or group for public release
+#
 elif [ "$1" = "export" ]; then
   process_start export
 
@@ -85,3 +118,7 @@ elif [ "$1" = "export" ]; then
 
   process_end export
 fi
+
+#---------------------------------------------------------------------------------#
+#                                   End of file                                   #
+#---------------------------------------------------------------------------------#

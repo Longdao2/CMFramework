@@ -1,13 +1,24 @@
-# import
-#   SHELL_DIR   OUT_DIR     REPORT_HTML  DOC_DIR     PROJ_RAW
-#   REPORT_RAW  RUN_CCOV    REPORT_EXE   CCOV_HTML   GCOVR_EXE
-#   DEV_DIR     START_EXE   SHOW_REPORT
+#=================================================================================#
+# File         report.sh                                                          #
+# Author       Long Dao                                                           #
+# About        https://louisvn.com                                                #
+# Version      1.0.3                                                              #
+# Update       10-04-2023                                                         #
+# Copyright    2023 (c) Belongs to Louisvn                                        #
+# Details      C/C++ project management tool - [SH] Report                        #
+#=================================================================================#
 
+#---------------------------------------------------------------------------------#
+#                                    Includes                                     #
+#---------------------------------------------------------------------------------#
 
 source $SHELL_DIR/apis.sh
 
-if ! [ "$(ls -f $OUT_DIR/*.{ret,gcno} 2>/dev/null)" = "" ]; then
+#---------------------------------------------------------------------------------#
+#                                     Process                                     #
+#---------------------------------------------------------------------------------#
 
+if ! [ "$(ls -f $OUT_DIR/*.{ret,gcno} 2>/dev/null)" = "" ]; then
   process_start report
 
   # Clean old report
@@ -36,5 +47,8 @@ if ! [ "$(ls -f $OUT_DIR/*.{ret,gcno} 2>/dev/null)" = "" ]; then
   fi
 
   process_end report
-
 fi
+
+#---------------------------------------------------------------------------------#
+#                                   End of file                                   #
+#---------------------------------------------------------------------------------#
