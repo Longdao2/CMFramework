@@ -12,16 +12,14 @@
 #                                     Export                                      #
 #---------------------------------------------------------------------------------#
 
-export   RUN_TIMEOUT   PROJ_EXE      VAR_ARGS      REPORT_RAW    ECHO
+export   RUN_TIMEOUT   VAR_ARGS      REPORT_RAW    MAKE          ECHO
 export   GREEN         BLUE          GRAY          INVERT        RCOLOR
-export   BASE_DIR      TOOL_DIR      SHARE_DIR     TEMP_NAME     TEMP_DIR
+export   RED           BASE_DIR      SHARE_DIR     TEMP_NAME     TEMP_DIR
 export   OUT_DIR       DOC_DIR       PROJ_RAW      PROJ_OBJ      PROJ_EXE
-export   GCOVR_EXE     LOG_FILE      DEPC_FILE     REPORT_RAW    REPORT_HTML
-export   CCOV_HTML     CCD_FILE      LDD_FILE      CC            PP
+export   GCOVR_EXE     LOG_FILE      DEPC_FILE     START_EXE     REPORT_HTML
+export   CCOV_HTML     CCD_FILE      LDD_FILE      ROOT_DIR      REPORT_EXE
 export   CCFLAGS       LDFLAGS       CCOV_CC       CCOV_LD       SHELL_DIR
 export   USER_NAME     PROJ_NAME     RUN_CCOV      DEV_DIR       SHOW_REPORT
-export   RED           ROOT_DIR      PROJ_DIR      REPORT_EXE    MASK_INC_DIRS
-export   LD            START_EXE     MAKE
 
 #---------------------------------------------------------------------------------#
 #                                   End of file                                   #
