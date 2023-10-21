@@ -5,7 +5,7 @@
 # Version      1.0.3                                                              #
 # Update       10-04-2023                                                         #
 # Copyright    2023 (c) Belongs to Louisvn                                        #
-# Details      C/C++ project management tool - Macros                             #
+# Details      C/C++ project management tool - [MK] Macros                        #
 #=================================================================================#
 
 #---------------------------------------------------------------------------------#
@@ -18,8 +18,6 @@ process_end    =  $(ECHO) "$(GRAY)$(INVERT)" && \
                   date +'>>> Finish $(strip $(1)) at '%H:%M:%S' on '%Y-%m-%d' ' && $(ECHO) "$(RCOLOR)"
 
 message_error  =  $(ECHO) "$(RED)~ ERROR: $(strip $(1)) $(RCOLOR)"
-
-message_red    =  $(ECHO) "$(RED)> $(RCOLOR)$(strip $(1))"
 
 message_green  =  $(ECHO) "$(GREEN)> $(RCOLOR)$(strip $(1))"
 
@@ -39,8 +37,7 @@ build_process  =  $(build_start) $(call message_green, Compiling from $<) & \
                   $(call build_cmd ,$(1) $(CCFLAGS) $(MASK_INC_DIRS) -MMD -MP -MF $(@:%.o=%.d) \
                   $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g3) $(if $(filter $(dir $<),$(DEV_DIR)/),$(CCOV_CC)) $< -o $@)
 
-build_status   =  $(call message_blue, Status: [$$([ -e $(ERROR_FILE) ] && \
-                  ($(ECHO) "$(RED)FAIL$(RCOLOR)" & rm -f $(PROJ_EXE)) || \
+build_status   =  $(call message_blue, Status: [$$([ -e $(ERROR_FILE) ] && ($(ECHO) "$(RED)FAIL$(RCOLOR)" & rm -f $(PROJ_EXE)) || \
                   $(ECHO) "$(GREEN)PASS$(RCOLOR)")] -> $(LOG_FILE))
 
 convert_path   =  $(subst \,/,$(patsubst $(strip $(1)).%,%,$@))

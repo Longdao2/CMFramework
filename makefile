@@ -5,7 +5,7 @@
 # Version      1.0.3                                                              #
 # Update       10-04-2023                                                         #
 # Copyright    2023 (c) Belongs to Louisvn                                        #
-# Details      C/C++ project management tool - Main                               #
+# Details      C/C++ project management tool - [MK] Main                          #
 #=================================================================================#
 
 #---------------------------------------------------------------------------------#
@@ -30,6 +30,7 @@
   INVERT       :=  \033[7m
   RCOLOR       :=  \033[0m
 
+# Only to be used during the build process
   BUILD_VAL    := 0
 
 # Base paths (start at Framework folder)

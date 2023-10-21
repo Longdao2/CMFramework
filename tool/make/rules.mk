@@ -5,7 +5,7 @@
 # Version      1.0.3                                                              #
 # Update       10-04-2023                                                         #
 # Copyright    2023 (c) Belongs to Louisvn                                        #
-# Details      C/C++ project management tool - Rules                              #
+# Details      C/C++ project management tool - [MK] Rules                         #
 #=================================================================================#
 
 #---------------------------------------------------------------------------------#
