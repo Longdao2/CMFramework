@@ -29,7 +29,8 @@ force: clean build run
 # Details: Initialize (or reinitialize) the Framework
 #
 setup:
-	@rm -rf $(SHELL_DIR)/tmp; mkdir -p $(SHELL_DIR)/tmp & $(MAKE) __forced=on vsinit
+	@dos2unix -q $(SHELL_DIR)/* $(TOOL_DIR)/extend/* makefile & \
+	rm -rf $(SHELL_DIR)/tmp; mkdir -p $(SHELL_DIR)/tmp & $(MAKE) __forced=on vsinit
 
 # =================================================================================
 # Command: [make info]
