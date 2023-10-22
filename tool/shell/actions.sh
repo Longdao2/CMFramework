@@ -218,7 +218,7 @@ elif [ "$1" = "import" ]; then
 
   if [[ "$zip_file" == *.zip ]] && ls $zip_file 1>/dev/null 2>&1; then
     if [ -e "$newproj_dir" ]; then
-      message_error "The [$newproj_dir] project or group already exist"
+      message_error "The [$newproj_name] project or group already exist"
     else
       message_green "Importing into [$newproj_dir]" & \
       mkdir -p $newproj_dir
@@ -246,7 +246,7 @@ elif [ "$1" = "export" ]; then
     cd "$newproj_dir"; zip -r $export_file ./*
 
   else
-    message_error "The [$newproj_dir] project or group does not exist"
+    message_error "The [$newproj_name] project or group does not exist"
   fi
   process_end export
 
