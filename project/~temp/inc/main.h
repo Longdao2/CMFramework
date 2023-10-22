@@ -4,7 +4,6 @@
 * @version  0.1
 * @date     0000-00-00
 * @brief    ...
-* @details  ...
 */
 
 #ifndef _MAIN_H_
