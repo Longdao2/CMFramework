@@ -17,8 +17,9 @@ extern "C" {
 >>>                                Includes
 --------------------------------------------------------------------------- */
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
-#include "duration.h"
+#include <profileapi.h>
 
 /** -----------------------------------------------------------------------
 >>>                               Definitions
@@ -95,12 +96,18 @@ typedef struct
 
 /* ======================================================================== */
 
+#define REPORT_RAW  getenv("REPORT_RAW")
+#define USER_NAME   getenv("USER_NAME")
+#define PROJ_NAME   getenv("PROJ_NAME")
+
+/* ======================================================================== */
+
 #define UT_DEF_S const UT_TestCase_t __ut_all_tests[] = {
 
 /* ======================================================================== */
 
 #define UT_AddTest(name_test, brief) \
-    (UT_TestCase_t){name_test, (char *)#name_test, (char *)#brief},
+    {name_test, (char *)#name_test, (char *)#brief},
 
 /* ======================================================================== */
 
@@ -121,8 +128,8 @@ typedef struct
         strftime(formattedTime, sizeof(formattedTime), "%H:%M:%S %m-%d-%Y", localTime); \
         \
         /* Write File */ \
-        remove(OUTPATH); \
-        ut_init(OUTPATH); \
+        remove(REPORT_RAW); \
+        ut_init(REPORT_RAW); \
         ut_setvar(0, "all_test", __ut_all_tests_size); \
         ut_setvar_s(0, "exe_time", formattedTime); \
         ut_setvar_s(0, "user_name", USER_NAME); \
@@ -148,7 +155,9 @@ typedef struct
     extern const UT_TestCase_t __ut_all_tests[]; \
     extern const uint_t __ut_all_tests_size; \
     extern unsigned char __ut_test_checker; \
-    duration_init(); \
+    extern LARGE_INTEGER __du_freq, __du_start, __du_end; \
+    extern double __du_elapsed; \
+    QueryPerformanceFrequency( &__du_freq ); \
     \
     /* Run and Update results */ \
     for (uint_t index_case = 0; index_case < __ut_all_tests_size; index_case++) { \
@@ -157,13 +166,14 @@ typedef struct
         \
         /* Run test and get status */ \
         __ut_test_checker = 1; \
-        duration_start(); \
+        QueryPerformanceCounter( &__du_start ); \
         __ut_all_tests[index_case].func(); \
-        duration_end(); \
+        QueryPerformanceCounter( &__du_end ); \
+        __du_elapsed = (( double )( __du_end.QuadPart - __du_start.QuadPart ) / __du_freq.QuadPart ) * 1000; \
         \
         /* Update status */ \
         ut_setvar(index_case + 1, "status", __ut_test_checker); \
-        ut_setvar(index_case + 1, "duration", (uint_t)(DURATION_VALUE * 1000.0)); \
+        ut_setvar(index_case + 1, "duration", (uint_t)(__du_elapsed * 1000.0)); \
         \
         /* Display result */ \
         if (1 == __ut_test_checker) { \

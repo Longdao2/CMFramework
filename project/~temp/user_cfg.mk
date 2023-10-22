@@ -1,9 +1,9 @@
 #=================================================================================#
 # File         user_cfg.mk                                                        #
 # Author       ...                                                                #
-# About        ...                                                                #
-# Version      1.0.0                                                              #
-# Update       00-00-0000                                                         #
+# Version      1.0.5                                                              #
+# Release      10-30-2023                                                         #
+# Copyright    2023 (c) Belongs to Louisvn                                        #
 # Details      Specific config for project                                        #
 #=================================================================================#
 
@@ -14,20 +14,14 @@
 # Your full name to show in the terminal and test report
 USER_NAME := Your Full Name
 
-# Using C++ programming language in the project (on/off)
-USE_CPP := off
-
 # Run with time out (seconds)
-RUN_TIMEOUT := 30.0s
+RUN_TIMEOUT := 1.0s
 
 # Run with CCOV report (on/off)
 RUN_CCOV := off
 
 # Show the report to the web browser after it is generated (on/off)
 SHOW_REPORT := off
-
-# Show command in terminal [not recommended] (on/off)
-SHOW_CMD := off
 
 #---------------------------------------------------------------------------------#
 #                                Paths and options                                #
@@ -51,9 +45,9 @@ VAR_ARGS :=
 # Add user definitions (if any)
 USER_DEFS := 
 
-# Add compiler and linker flags (if any)
-CCFLAGS := 
-LDFLAGS := 
+# Add compiler and linker flags
+CCFLAGS := -c -Og -W -Wall -Wextra -Wwrite-strings -Wshadow=local -pedantic -fmessage-length=0
+LDFLAGS := -r -Wl,-Map=$(OUT_DIR)/$(PROJ_RAW).map
 
 #---------------------------------------------------------------------------------#
 #                                   VSCode Debug                                  #

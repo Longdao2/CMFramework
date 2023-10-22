@@ -1,0 +1,34 @@
+{
+  "configurations": [
+    {
+      "name": "Make: Debug C/C++ Project",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "[[SED_PROJ_EXE]]",
+      "args":
+      [[[SED_VAR_ARGS]]
+        ""
+      ],
+      "stopAtEntry": [[SED_STOP_ENTRY]],
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": [[SED_EXT_CONSOLE]],
+      "MIMode": "gdb",
+      "miDebuggerPath": "gdb",
+      "setupCommands":
+      [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        },
+        {
+          "description": "Set Disassembly Flavor to Intel",
+          "text": "-gdb-set disassembly-flavor intel",
+          "ignoreFailures": true
+        }
+      ]
+    }
+  ],
+  "version": "2.0.0"
+}

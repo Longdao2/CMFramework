@@ -19,8 +19,9 @@
 
 #ifdef UTEST_SUPPORT
 
+LARGE_INTEGER __du_freq, __du_start, __du_end;
+double __du_elapsed;
 static char *sfile = NULL;
-
 static char sfail[1001] = "";
 
 void ut_init(const char file[])
