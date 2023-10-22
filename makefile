@@ -156,7 +156,7 @@ endif # RUN_CCOV == on
   .PHONY: _all _s_build _check_project _check_depend
 
 # Supports a queue that allows execution across multiple projects
-ifneq ($(PROJ_LIST),)
+ifneq ($(plist),)
   __forced := on
 
   ifneq ($(filter move.% remove.% import.% export.%, $(MAKECMDGOALS)),)
@@ -164,18 +164,18 @@ ifneq ($(PROJ_LIST),)
   endif # MAKECMDGOALS
 
 $(word 1,$(MAKECMDGOALS)) _all:
-	@$(foreach CURR_PROJ, $(PROJ_LIST), $(ECHO) "\n=============== Project: $(CURR_PROJ) ==============="; \
-	if [ -e $(BASE_DIR)/$(CURR_PROJ)/user_cfg.mk ]; then $(MAKE) PROJ_LIST="" PROJ_NAME=$(CURR_PROJ) $(MAKECMDGOALS); \
+	@$(foreach CURR_PROJ, $(plist), $(ECHO) "\n=============== Project: $(CURR_PROJ) ==============="; \
+	if [ -e $(BASE_DIR)/$(CURR_PROJ)/user_cfg.mk ]; then $(MAKE) plist="" PROJ_NAME=$(CURR_PROJ) $(MAKECMDGOALS); \
 	else echo; $(call message_error, This project does not exist\n); fi; )
 
 $(filter-out $(word 1, $(MAKECMDGOALS)), $(MAKECMDGOALS)):
 	@:
 
 # Rules for each project
-else # PROJ_LIST == ""
+else # plist == ""
   BUILD_CHECK := _check_project $(OUT_DIR) _check_depend
   include $(TOOL_DIR)/make/rules.mk
-endif # PROJ_LIST != ""
+endif # plist != ""
 
 #---------------------------------------------------------------------------------#
 #                                   Dependencies                                  #
