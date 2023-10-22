@@ -32,6 +32,7 @@
 
 # Only to be used during the build process
   BUILD_VAL    := 0
+  SRC_PREV     :=
 
 # Base paths (start at Framework folder)
   ROOT_DIR     :=  $(shell pwd | sed -e 's/\/cygdrive\/\(.\)/\1:/')
@@ -114,14 +115,10 @@ endif # MAKECMDGOALS
 # List of source code files that do not support debugging
   SRC_NODEBUG_FILES += utest.c
 
-# Search all source files
-  TLS_OBJ_FILES := $(wildcard $(TOOL_DIR)/bin/obj/*.o)
-  TLS_EXE_NAMES := $(notdir $(TLS_OBJ_FILES:%.o=%.exe))
-
   vpath %.c   $(sort $(dir $(SRC_FILES)))
   vpath %.cpp $(sort $(dir $(SRC_FILES)))
   vpath %.cc  $(sort $(dir $(SRC_FILES)))
-  vpath %.o   $(sort $(dir $(OBJ_FILES)) $(TOOL_DIR)/bin/obj)
+  vpath %.o   $(sort $(dir $(OBJ_FILES)))
 
 # Parsing file names in the project
   OBJ_NAMES := $(notdir $(shell echo "$(SRC_FILES)" | sed 's/\.[^.]*\(\s\|$$\)/.o /g'))
@@ -183,7 +180,9 @@ endif # plist != ""
 
 ifneq ($(__forced),on)
   ifneq ($(filter quick build %.o $(PROJ_EXE) !w!0, $(MAKECMDGOALS) !w!$(words $(MAKECMDGOALS))),)
-    SILENT := $(shell $(SHELL_DIR)/actions.sh depend_init)
+    -include $(PROJ_OBJ:%.o=%.d)
+    SRC_DEPS := $(addprefix $(OUT_DIR)/,$(notdir $(shell echo "$(filter-out $(SRC_FILES), $(SRC_PREV))" | sed 's/\.[^.]*\(\s\|$$\)/.\* /g')))
+    SILENT := $(shell $(if $(SRC_DEPS), rm -rf $(SRC_DEPS) $(PROJ_OBJ) & ) $(SHELL_DIR)/actions.sh depend_init)
     -include $(OBJ_FILES:%.o=%.d)
   endif # MAKECMDGOALS
   $(info )

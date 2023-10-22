@@ -77,7 +77,7 @@ _check_project:
 	@$(if $(filter $(PROJ_NAME),$(TEMP_NAME)), $(error Some features are limited on template project. Please create or move to another project))
 
 _check_depend:
-	@rm -f $(ERROR_FILE) & $(SHELL_DIR)/actions.sh depend_update
+	@rm -f $(ERROR_FILE) & $(src_depend) & $(SHELL_DIR)/actions.sh depend_update
 
 # =================================================================================
 # Command: [make <src_name>.o]
