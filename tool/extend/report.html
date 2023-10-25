@@ -133,6 +133,21 @@
       color: #ffffff;
     }
 
+    .fail_block {
+      background: #373737;
+      margin-top: 5px;
+      width: 100%;
+      height: auto;
+      max-height: 139px;
+      clip-path: inset(0 0 0 0 round 5px);
+      padding: 3px 5px;
+      font-family: 'Consolas', 'Courier New', Courier, monospace;
+      text-wrap: nowrap;
+      overflow: auto;
+      color: #f5f5f5;
+      font-size: 0.77rem;
+    }
+
     #c_ccov {
       position: absolute;
       top: 7px;
@@ -251,7 +266,7 @@
         document.getElementById("tb4").innerHTML = "All tests passed. See details below";
         document.getElementById("tb4").style.background = "#9ae29c";
       } else {
-        document.getElementById("tb4").innerHTML = "Some tests failed or didn't run. See details below";
+        document.getElementById("tb4").innerHTML = "Some tests failed or had errors. See details below";
         document.getElementById("tb4").style.background = "#ffcccc";
       }
       if (pGcov != "") {
@@ -265,12 +280,13 @@
 
     function Add_Infor(proj,user,time,duration,check)
     {
-      if (duration != 0) {
-        if (check == "1") document.getElementById("tb5").style.background = "#9ae29c";
-        else if (check == "0") document.getElementById("tb5").style.background = "#ffcccc";
-        else duration = "--";
-      }
-      else duration = "--";
+      if (duration == "") duration = "--";
+
+      if ((duration != "--") && (check == "1"))
+        document.getElementById("tb5").style.background = "#9ae29c";
+      else
+        document.getElementById("tb5").style.background = "#ffcccc";
+
       document.getElementById("tb1").innerHTML = proj.replace(/\//g, "&ensp;/&ensp;");
       document.getElementById("tb2").innerHTML = user;
       document.getElementById("tb3").innerHTML = time;
@@ -283,12 +299,12 @@
       vTotal = vTotal + 1;
 
       if (retsult != "") {
-        if (duration == 0) _duration = "~0";
+        if (duration == "0") _duration = "~0";
         else _duration = duration;
         if (retsult == "0") {
           vFail = vFail + 1;
           _id = "fail";
-          _status = "Assertion failed at lines : " + fail.replace(/\s+/g, ' ').trim().replace(/ /g,", ");
+          _status = "Failed";
         }
         else if (retsult == "1") {
           vPass = vPass + 1;
@@ -296,13 +312,19 @@
           _status = "Success";
         }
       }
-
       else if (retsult == "") {
         vError = vError + 1;
         _duration = "--";
         _id = "error";
-        _id1 = "col2";
-        _status = "Suddenly stopped or did not run";
+        _id1 = "fail";
+        if (vError == 1)
+          _status = "Aborted or not executed";
+        else
+          _status = "Not executed";
+      }
+
+      if (fail != "") {
+        _status += "<br>Some assertions have been detected to fail ▾<div class='fail_block'>" + fail.trim() + "</div>";
       }
 
       var str = `
@@ -323,7 +345,7 @@
           <tr>
             <td id="col1">STATUS</td>
             <td id="` + _id + `">` + _status + `</td>
-            <td id="` + _id1 + `">Execution time : ` + _duration + ` ms</td>
+            <td id="` + _id1 + `">Execution time : ` + _duration + ` us</td>
           </tr>
         </table>
       `;
@@ -338,7 +360,7 @@
 
     pGcov = "[[SED_REPORT_CCOV]]";
 
-    Add_Infor("[[SED_PROJ_NAME]]", "[[SED_USER_NAME]]", "[[SED_TIMESTAMP]]", [[SED_TIME_EXEC]], "[[SED_CHECK_STATUS]]");
+    Add_Infor("[[SED_PROJ_NAME]]", "[[SED_USER_NAME]]", "[[SED_TIMESTAMP]]", "[[SED_TIME_EXEC]]", "[[SED_CHECK_STATUS]]");
 
     /* Add_Test("TEST_NAME","TEST_BRIEF",DURATION,"RESULT","FAIL_LOG"); */ [[SED_ADD_ALL_TEST]]
 
