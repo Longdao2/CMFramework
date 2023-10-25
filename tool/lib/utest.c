@@ -1,8 +1,8 @@
 /**
 * @file     utest.c
 * @author   Long Dao [admin@louisvn.com]
-* @version  0.2
-* @date     2023-08-05
+* @version  0.3
+* @date     2023-10-30
 * @brief    Extension for testing (build only)
 */
 
@@ -11,6 +11,8 @@
 --------------------------------------------------------------------------- */
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
+#include <profileapi.h>
 #include "utest.h"
 
 /** -----------------------------------------------------------------------
@@ -19,59 +21,90 @@
 
 #ifdef UTEST_SUPPORT
 
-LARGE_INTEGER __du_freq, __du_start, __du_end;
-double __du_elapsed;
-static char *sfile = NULL;
-static char sfail[1001] = "";
+#define UT_SET_START \
+    FILE * f = fopen(s_file, "a"); \
+    if (NULL != f) {
 
-void ut_init(const char file[])
+#define UT_SET_END \
+    } else { \
+        printf("\n> UT_ERROR : Can not open \"%s\"\n", s_file); \
+        exit(111); \
+    } fclose(f);
+
+static LARGE_INTEGER s_freq, s_start, s_end;
+static char *s_file = NULL;
+static int s_id = 0;
+
+void UT_Init(void)
 {
-    sfile = (char *)file;
+    time_t currentTime;
+    struct tm *localTime;
+    char formattedTime[20];
+
+    s_id = 0;
+    s_file = getenv("REPORT_RAW");
+    currentTime = time(NULL);
+    localTime = localtime(&currentTime);
+    strftime(formattedTime, sizeof(formattedTime), "%H:%M:%S %m-%d-%Y", localTime);
+
+    remove(s_file);
+    UT_SetVar_Num("all_test", __ut_all_tests_size);
+    UT_SetVar_Str("exe_time", formattedTime);
+    UT_SetVar_Str("user_name", getenv("USER_NAME"));
+    UT_SetVar_Str("proj_name", getenv("PROJ_NAME"));
 }
 
-void ut_setvar_s(uint_t index, const char varname[], const char value[])
+void DU_Init(void)
 {
-    FILE * f = fopen(sfile, "a");
-
-    if (NULL != f)
-    {
-        fprintf(f, "%d.%.30s = %.1000s\n", index, varname, value);
-    }
-    else
-    {
-        printf("\n> UT_ERROR : Can not open \"%s\"\n", sfile);
-        exit(11);
-    }
-
-    fclose(f);
+    QueryPerformanceFrequency(&s_freq);
 }
 
-void ut_setvar(uint_t index, const char varname[], uint_t value)
+void UT_SetId(int id)
 {
-    char buff[11] = "";
-
-    sprintf(buff, "%d", value);
-    ut_setvar_s(index, varname, buff);
+    s_id = id;
 }
 
-void ut_addfail(uint_t line)
+void UT_SetBrief(const char brief[])
 {
-    char _sfail[12] = "";
-    sprintf(_sfail, " %d", line);
-    if ((strlen(sfail) + strlen(_sfail)) < sizeof(sfail))
-    {
-        strcat(sfail, _sfail);
-    }
+    UT_SET_START
+        fprintf(f, "%d.brief = %.*s\n", s_id, strlen(brief) - 2, brief + 1);
+    UT_SET_END
 }
 
-char *ut_getfail(void)
+void UT_SetVar_Str(const char varname[], const char value[])
 {
-    return sfail;
+    UT_SET_START
+        fprintf(f, "%d.%s = %s\n", s_id, varname, value);
+    UT_SET_END
 }
 
-void ut_resetfail(void)
+void UT_SetVar_Num(const char varname[], unsigned int value)
 {
-    *sfail = 0;
+    UT_SET_START
+        fprintf(f, "%d.%s = %d\n", s_id, varname, value);
+    UT_SET_END
+}
+
+void UT_AddFail(const char file[], const char func[], int line)
+{
+    UT_SET_START
+        fprintf(f, "%d.fail = %s - Func: %s - Line: %d<br>\n", s_id, file, func, line);
+    UT_SET_END
+}
+
+void DU_Start(void)
+{
+    QueryPerformanceCounter( &s_start );
+}
+
+void DU_End(void)
+{
+    QueryPerformanceCounter( &s_end );
+}
+
+double DU_GetValue(void)
+{
+    return (( double )( s_end.QuadPart - s_start.QuadPart ) / s_freq.QuadPart ) * 1000000.0;
 }
 
 #endif /* UTEST_SUPPORT */
