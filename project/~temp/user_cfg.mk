@@ -45,7 +45,10 @@ VAR_ARGS :=
 # Add user definitions (if any)
 USER_DEFS := 
 
-# Add compiler and linker flags
+# Add user environment variables (if any)
+USER_ENVS := REPORT_RAW USER_NAME PROJ_NAME
+
+# Add compiler and linker flags (if any)
 CCFLAGS := -c -Og -W -Wall -Wextra -Wwrite-strings -Wshadow=local -pedantic -fmessage-length=0
 LDFLAGS := -r -Wl,-Map=$(OUT_DIR)/$(PROJ_RAW).map
 
