@@ -22,8 +22,6 @@ export   CCFLAGS       LDFLAGS       CCOV_CC       CCOV_LD       EXTERNAL_CONSOL
 export   DEV_DIR       INC_DIRS      SHELL_DIR     SHOW_REPORT   STOP_AT_ENTRY
 export   TOOL_DIR      USER_ENVS     REPORT_RAW    USER_NAME     PROJ_NAME
 
-$(foreach ENV, $(USER_ENVS), export $(ENV))
-
 #---------------------------------------------------------------------------------#
 #                                   End of file                                   #
 #---------------------------------------------------------------------------------#
