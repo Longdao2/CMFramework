@@ -1,8 +1,8 @@
 /**
 * @file     utest.h
 * @author   Long Dao [admin@louisvn.com]
-* @version  0.2
-* @date     2023-08-05
+* @version  0.3
+* @date     2023-10-30
 * @brief    APIs to perform testing
 */
 
@@ -17,18 +17,25 @@ extern "C" {
 >>>                                Includes
 --------------------------------------------------------------------------- */
 #include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <profileapi.h>
 
 /** -----------------------------------------------------------------------
 >>>                               Definitions
 --------------------------------------------------------------------------- */
-#define uint_t unsigned int
+#define UT_ARGS_FILE_FUNC_LINE  __FILE__, __func__, __LINE__
 
 /** -----------------------------------------------------------------------
 >>>                                  APIs
 --------------------------------------------------------------------------- */
+
+/**
+* @brief Use for debugging purposes. Failed assertions will jump in here
+* @param [in] \c file \c func \c line
+*/
+__attribute__((unused)) static inline void UT_IsFailure(const char file[], const char func[], int line)
+{
+    void UT_AddFail(const char[], const char[], int); UT_AddFail(file, func, line);
+}
+
 
 /**
 * @brief Template to create a test function
@@ -78,13 +85,6 @@ extern "C" {
 
 #else /* #ifdef UTEST_SUPPORT */
 
-void ut_init(const char file[]);
-void ut_setvar_s(uint_t index, const char varname[], const char value[]);
-void ut_setvar(uint_t index, const char varname[], uint_t value);
-void ut_addfail(uint_t line);
-char *ut_getfail(void);
-void ut_resetfail(void);
-
 typedef void (*UT_FuncTest_t)(void);
 
 typedef struct
@@ -94,11 +94,20 @@ typedef struct
     char * brief;
 } UT_TestCase_t;
 
-/* ======================================================================== */
+void UT_Init(void);
+void DU_Init(void);
+void UT_SetId(int id);
+void UT_SetVar_Str(const char varname[], const char value[]);
+void UT_SetVar_Num(const char varname[], unsigned int value);
+void UT_AddFail(const char file[], const char func[], int line);
+void UT_SetBrief(const char brief[]);
+void DU_Start(void);
+void DU_End(void);
+double DU_GetValue(void);
 
-#define REPORT_RAW  getenv("REPORT_RAW")
-#define USER_NAME   getenv("USER_NAME")
-#define PROJ_NAME   getenv("PROJ_NAME")
+extern const UT_TestCase_t __ut_all_tests[];
+extern const unsigned int __ut_all_tests_size;
+extern unsigned char __ut_test_checker;
 
 /* ======================================================================== */
 
@@ -112,75 +121,51 @@ typedef struct
 /* ======================================================================== */
 
 #define UT_DEF_E }; \
-    const uint_t __ut_all_tests_size = sizeof(__ut_all_tests) / sizeof(__ut_all_tests[0]); \
+    const unsigned int __ut_all_tests_size = sizeof(__ut_all_tests) / sizeof(__ut_all_tests[0]); \
     unsigned char __ut_test_checker = 0; \
     \
     __attribute__((constructor)) void custom_startup(void) { \
-        extern const UT_TestCase_t __ut_all_tests[]; \
-        extern const uint_t __ut_all_tests_size; \
-        time_t currentTime; \
-        struct tm *localTime; \
-        char formattedTime[20]; \
+        UT_Init(); \
         \
-        /* Get Time */ \
-        currentTime = time(NULL); \
-        localTime = localtime(&currentTime); \
-        strftime(formattedTime, sizeof(formattedTime), "%H:%M:%S %m-%d-%Y", localTime); \
-        \
-        /* Write File */ \
-        remove(REPORT_RAW); \
-        ut_init(REPORT_RAW); \
-        ut_setvar(0, "all_test", __ut_all_tests_size); \
-        ut_setvar_s(0, "exe_time", formattedTime); \
-        ut_setvar_s(0, "user_name", USER_NAME); \
-        ut_setvar_s(0, "proj_name", PROJ_NAME); \
-        for (uint_t index_case = 0; index_case < __ut_all_tests_size; index_case++) { \
-            ut_setvar_s(index_case + 1, "name", __ut_all_tests[index_case].nameTest); \
-            ut_setvar_s(index_case + 1, "brief", __ut_all_tests[index_case].brief); \
+        for (unsigned int index_case = 0; index_case < __ut_all_tests_size; index_case++) { \
+            UT_SetId(index_case + 1); \
+            UT_SetVar_Str("name", __ut_all_tests[index_case].nameTest); \
+            UT_SetBrief(__ut_all_tests[index_case].brief); \
         } \
     }
 
 /* ======================================================================== */
 
 #define UT_Assert(condition) \
-    extern unsigned char __ut_test_checker; \
     if (!(condition)) { \
         __ut_test_checker = 0; \
-        ut_addfail(__LINE__); \
+        UT_IsFailure(UT_ARGS_FILE_FUNC_LINE); \
     }
 
 /* ======================================================================== */
 
 #define UT_RunTests() \
-    extern const UT_TestCase_t __ut_all_tests[]; \
-    extern const uint_t __ut_all_tests_size; \
-    extern unsigned char __ut_test_checker; \
-    extern LARGE_INTEGER __du_freq, __du_start, __du_end; \
-    extern double __du_elapsed; \
-    QueryPerformanceFrequency( &__du_freq ); \
+    DU_Init(); \
     \
-    /* Run and Update results */ \
-    for (uint_t index_case = 0; index_case < __ut_all_tests_size; index_case++) { \
-        ut_resetfail(); \
+    for (unsigned int index_case = 0; index_case < __ut_all_tests_size; index_case++) { \
+        UT_SetId(index_case + 1); \
         printf("\n< FuncTest(\033[0;34m%s\033[0m): %s\n", __ut_all_tests[index_case].nameTest, __ut_all_tests[index_case].brief); \
         \
         /* Run test and get status */ \
         __ut_test_checker = 1; \
-        QueryPerformanceCounter( &__du_start ); \
+        DU_Start(); \
         __ut_all_tests[index_case].func(); \
-        QueryPerformanceCounter( &__du_end ); \
-        __du_elapsed = (( double )( __du_end.QuadPart - __du_start.QuadPart ) / __du_freq.QuadPart ) * 1000; \
+        DU_End(); \
         \
         /* Update status */ \
-        ut_setvar(index_case + 1, "status", __ut_test_checker); \
-        ut_setvar(index_case + 1, "duration", (uint_t)(__du_elapsed * 1000.0)); \
+        UT_SetVar_Num("status", (unsigned int)__ut_test_checker); \
+        UT_SetVar_Num("duration", (unsigned int)DU_GetValue()); \
         \
         /* Display result */ \
         if (1 == __ut_test_checker) { \
             printf("\033[0;32m> PASS\033[0m\n"); \
         } \
         else { \
-            ut_setvar_s(index_case + 1, "fail", ut_getfail()); \
             printf("\033[0;31m> FAIL\033[0m\n"); \
         } \
     }

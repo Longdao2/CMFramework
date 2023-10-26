@@ -267,19 +267,24 @@ elif [ "$1" = "vsinit" ]; then
   sed -i "s|\[\[SED_TEMP_NAME\]\]|$TEMP_NAME|g" "$setting_file"
 
   # Configuration for c_cpp_properties.json
-  buff=""
+  __inc_dirs=""
   for item in $INC_DIRS; do
-    buff+='\n        "'$item'",'
+    __inc_dirs+='\n        "'$item'",'
   done
-  sed -i "s|\[\[SED_INC_DIRS\]\]|$buff|g" "$ccpp_file"
+  sed -i "s|\[\[SED_INC_DIRS\]\]|$__inc_dirs|g" "$ccpp_file"
 
   # Configuration for launch.json
-  buff=""
+  __var_args=""
   eval "array=($VAR_ARGS)"
   for item in "${array[@]}"; do
-    buff+='\n        "'"$(echo $item | sed 's|\\|\\\\|g; s|"|\\\\"|g; s|\||\\\||g')"'",'
+    __var_args+='\n        "'"$(echo $item | sed 's|\\|\\\\|g; s|"|\\\\"|g; s|\||\\\||g')"'",'
   done
-  sed -i "s|\[\[SED_PROJ_EXE\]\]|$PROJ_EXE|g; s|\[\[SED_VAR_ARGS\]\]|$buff|g; s|\[\[SED_STOP_ENTRY\]\]|$STOP_AT_ENTRY|g; s|\[\[SED_EXT_CONSOLE\]\]|$EXTERNAL_CONSOLE|g" "$launch_file"
+
+  __user_envs=""
+  for item in $USER_ENVS; do
+    __user_envs+='\n        { "name": "'$item'", "value": "'"$(echo ${!item} | sed 's|\\|\\\\|g; s|"|\\\\"|g; s|\||\\\||g')"'" },'
+  done
+  sed -i "s|\[\[SED_PROJ_EXE\]\]|$PROJ_EXE|g; s|\[\[SED_VAR_ARGS\]\]|$__var_args|g; s|\[\[SED_STOP_ENTRY\]\]|$STOP_AT_ENTRY|g; s|\[\[SED_USER_ENVS\]\]|$__user_envs|g; s|\[\[SED_EXT_CONSOLE\]\]|$EXTERNAL_CONSOLE|g" "$launch_file"
 
 # =================================================================================
 fi

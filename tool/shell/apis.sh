@@ -119,9 +119,9 @@ function gen_test_report() {
     test_brief=$(echo $(inner_getvar $i brief) | sed 's|\\|\\\\|g; s|"|\\"|g; s|\||\\\||g')
     test_status=$(inner_getvar $i status)
     test_duration=$(inner_getvar $i duration)
-    test_fail=$(inner_getvar $i fail)
+    test_fail=$(echo $(inner_getvar $i fail) | sed 's|\\|\\\\|g; s|"|\\"|g; s|\||\\\||g')
 
-    buff+='\n    Add_Test("'$test_name'",'$test_brief','$test_duration',"'$test_status'","'$test_fail'");'
+    buff+='\n    Add_Test("'$test_name'","'$test_brief'","'$test_duration'","'$test_status'","'$test_fail'");'
   done
   sed -i "s|\[\[SED_ADD_ALL_TEST\]\]|$buff|g" "$REPORT_HTML"
 }
