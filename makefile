@@ -81,7 +81,7 @@ endif
 
 # If the project directory is empty, should be "./path/to/project"
 ifeq ("$(wildcard $(PROJ_DIR)/user_cfg.mk)","")
-  SILENT := $(shell $(SHELL_DIR)/project.sh move $(TEMP_NAME))
+  SILENT := $(shell $(SHELL_DIR)/actions.sh move $(TEMP_NAME))
   $(error Project [$(PROJ_NAME)] has ceased to exist. So it was brought back to the template project)
 endif
 
