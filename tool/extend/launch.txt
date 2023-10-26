@@ -7,11 +7,12 @@
       "program": "[[SED_PROJ_EXE]]",
       "args":
       [[[SED_VAR_ARGS]]
-        ""
       ],
       "stopAtEntry": [[SED_STOP_ENTRY]],
       "cwd": "${workspaceFolder}",
-      "environment": [],
+      "environment":
+      [[[SED_USER_ENVS]]
+      ],
       "externalConsole": [[SED_EXT_CONSOLE]],
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",

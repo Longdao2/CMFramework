@@ -39,11 +39,11 @@ SRC_FILES :=
 # Declare all paths to header files (.h .hpp .hh) here
 INC_DIRS := $(PROJ_DIR)/inc
 
-# Add arguments for the executable to run (if any)
+# Add arguments for the executable to run
 VAR_ARGS := 
 
-# Add user definitions (if any)
-USER_DEFS := 
+# Add user environment variables. The declared variables must also be exported
+USER_ENVS := REPORT_RAW USER_NAME PROJ_NAME
 
 # Add compiler and linker flags
 CCFLAGS := -c -Og -W -Wall -Wextra -Wwrite-strings -Wshadow=local -pedantic -fmessage-length=0
