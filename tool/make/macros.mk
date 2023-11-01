@@ -14,8 +14,8 @@
 
 process_start  =  $(ECHO) "$(INVERT)<<< Start $(strip $(1)) $(RCOLOR)\n"
 
-process_end    =  $(ECHO) "$(GRAY)$(INVERT)" && \
-                  date +'>>> Finish $(strip $(1)) at '%H:%M:%S' on '%Y-%m-%d' ' && $(ECHO) "$(RCOLOR)"
+process_end    =  $(ECHO) "$(GRAY)$(INVERT)"; \
+                  date +'>>> Finish $(strip $(1)) at '%H:%M:%S' on '%Y-%m-%d' '; $(ECHO) "$(RCOLOR)"
 
 message_error  =  $(ECHO) "$(RED)~ ERROR: $(strip $(1)) $(RCOLOR)"
 
@@ -31,9 +31,9 @@ build_start    =  $(build_tmp)
 
 build_end      =  $(call process_end, build) $(eval build_start = $(build_tmp))
 
-build_cmd      =  (echo; echo $(strip $(1)); echo) >> $(LOG_FILE); \
+build_cmd      =  (echo; echo $(strip $(1)); echo) >> $(LOG_FILE) & \
                   log=$$($(1) 2>&1 || touch $(ERROR_FILE)); \
-                  if ! [ -z "$$log" ]; then (echo WARN; echo "$$log"; echo) | tee -a $(LOG_FILE); fi
+                  if ! [ -z "$$log" ]; then (echo WARN; echo "$$log"; echo) | tee -a $(LOG_FILE) & fi
 
 build_process  =  $(build_start) $(call message_green, Compiling from $<) & \
                   $(call build_cmd ,$(1) $(CCFLAGS) $(MASK_INC_DIRS) -MMD -MP -MF $(@:%.o=%.d) \
