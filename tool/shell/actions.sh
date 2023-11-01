@@ -148,11 +148,13 @@ elif [ "$1" = "report" ]; then
       else
         gen_test_report &
       fi
+      wait
       open_report "test" "$REPORT_HTML" &
 
     # Only CCOV report
     elif [ "$RUN_CCOV" = "on" ]; then
       gen_ccov_report &
+      wait
       open_report "ccov" "$CCOV_HTML" &
     fi
 
