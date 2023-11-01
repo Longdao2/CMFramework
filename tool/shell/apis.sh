@@ -46,7 +46,7 @@ function message_blue () { $ECHO "$BLUE>$RCOLOR $1";        }
 # Return : /None/
 #
 function gen_ccov_report() {
-  message_green "Generating ccov report to $CCOV_HTML" & \
+  message_green "Generating ccov report to $CCOV_HTML" &
   $GCOVR_EXE --root $DEV_DIR --object-directory $OUT_DIR --html-details $CCOV_HTML || \
   message_error "CCOV report generation failed"
 }
@@ -59,7 +59,7 @@ function gen_ccov_report() {
 #
 function open_report() {
   if [ -e "$2" ] && [ "$SHOW_REPORT" = "on" ]; then
-    message_blue "Opening $1 report in browser" & \
+    message_blue "Opening $1 report in browser" &
     $START_EXE "$2" || message_error "Cannot open [$2]"
   fi
 }
@@ -89,8 +89,8 @@ function user_response() {
 # Return : /None/
 #
 function move_project() {
-  message_blue "Moving [$1] -> [$2]" & \
-  sed -i -e "s/^\s*PROJ_NAME\s*:*=.*$/  PROJ_NAME := ${2//\//\\/}/g" $ROOT_DIR/makefile & \
+  message_blue "Moving [$1] -> [$2]" &
+  sed -i -e "s/^\s*PROJ_NAME\s*:*=.*$/  PROJ_NAME := ${2//\//\\/}/g" $ROOT_DIR/makefile &
   $MAKE PROJ_NAME="$2" __forced=on vsinit
 }
 
@@ -106,10 +106,10 @@ function gen_test_report() {
     sed -n "s/^\s*$1.$2\s*=\s*//p" "$REPORT_RAW"
   }
 
-  dos2unix -q $REPORT_RAW & \
+  dos2unix -q $REPORT_RAW &
   cp -f $TOOL_DIR/extend/report.html $REPORT_HTML
 
-  sed -i "s|\[\[SED_FILE_NAME\]\]|$(basename $REPORT_HTML)|g; s|\[\[SED_REPORT_CCOV\]\]|$1|g; s|\[\[SED_PROJ_NAME\]\]|$(inner_getvar 0 proj_name)|g; s|\[\[SED_USER_NAME\]\]|$(inner_getvar 0 user_name)|g; s|\[\[SED_TIMESTAMP\]\]|$(inner_getvar 0 exe_time)|g; s|\[\[SED_TIME_EXEC\]\]|$(inner_getvar 0 duration)|g; s|\[\[SED_CHECK_STATUS\]\]|$(inner_getvar 0 status)|g" "$REPORT_HTML"
+  sed -i "s|\[\[SED_FILE_NAME\]\]|$(basename $REPORT_HTML)|g; s|\[\[SED_REPORT_CCOV\]\]|$1|g; s|\[\[SED_PROJ_NAME\]\]|$(inner_getvar 0 proj_name)|g; s|\[\[SED_USER_NAME\]\]|$(inner_getvar 0 user_name)|g; s|\[\[SED_TIMESTAMP\]\]|$(inner_getvar 0 exe_time)|g; s|\[\[SED_TIME_EXEC\]\]|$(inner_getvar 0 duration)|g; s|\[\[SED_CHECK_STATUS\]\]|$(inner_getvar 0 status)|g" "$REPORT_HTML" &
 
   buff=""
   all_test=$(inner_getvar 0 all_test)
@@ -123,7 +123,7 @@ function gen_test_report() {
 
     buff+='\n    Add_Test("'$test_name'","'$test_brief'","'$test_duration'","'$test_status'","'$test_fail'");'
   done
-  sed -i "s|\[\[SED_ADD_ALL_TEST\]\]|$buff|g" "$REPORT_HTML"
+  sed -i "s|\[\[SED_ADD_ALL_TEST\]\]|$buff|g" "$REPORT_HTML" &
 }
 
 #---------------------------------------------------------------------------------#
