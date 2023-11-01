@@ -38,12 +38,12 @@ setup:
 #
 info:
 	@$(call process_start, info);                   \
-	echo "Project Name : $(PROJ_NAME)";             \
-	echo "User Name    : $(USER_NAME)";             \
-	echo "Run Timeout  : $(RUN_TIMEOUT)";           \
-	echo "Run CCOV     : $(RUN_CCOV)";              \
-	echo "Show Report  : $(SHOW_REPORT)";           \
-	echo "See More     : $(PROJ_DIR)/user_cfg.mk";  \
+	echo "Project Name : $(PROJ_NAME)"            & \
+	echo "User Name    : $(USER_NAME)"            & \
+	echo "Run Timeout  : $(RUN_TIMEOUT)"          & \
+	echo "Run CCOV     : $(RUN_CCOV)"             & \
+	echo "Show Report  : $(SHOW_REPORT)"          & \
+	echo "See More     : $(PROJ_DIR)/user_cfg.mk" & \
 	$(call process_end, info)
 
 # =================================================================================
@@ -116,7 +116,7 @@ vsinit:
 # Details: Print to the screen the names of files and folders in the project
 #
 list:
-	@$(call process_start, list); tree $(PROJ_DIR); $(call process_end, list)
+	@$(call process_start, list) & tree $(PROJ_DIR); $(call process_end, list)
 
 # =================================================================================
 # Command: [make move.{project}]
@@ -153,10 +153,10 @@ $(SHARE_DIR): ; @mkdir -p $@
 # Details: Print the data of any variable in this makefile > Debug
 #
 print.%:
-	@$(call process_start, print)
-	@$(ECHO) "$(foreach BASE,$(subst ., ,$(@:print.%=%)), \n$(BLUE)$(BASE) =$(RCOLOR) $(foreach SUB,$($(BASE)), \
-	\n    $(strip $(subst ",\",$(subst \,\\,$(SUB)))))\n )"
-	@$(call process_end, print)
+	@$(call process_start, print); \
+	$(ECHO) "$(foreach BASE,$(subst ., ,$(@:print.%=%)), \n$(BLUE)$(BASE) =$(RCOLOR) $(foreach SUB,$($(BASE)), \
+	\n    $(strip $(subst ",\",$(subst \,\\,$(SUB)))))\n )"; \
+	$(call process_end, print)
 
 #---------------------------------------------------------------------------------#
 #                                   End of file                                   #

@@ -25,9 +25,9 @@ newproj_name="$2"
 newproj_dir="$BASE_DIR/$newproj_name"
 
 vsc_dir="$ROOT_DIR/.vscode"
-ccpp_file="$vsc_dir/c_cpp_properties.json"
-launch_file="$vsc_dir/launch.json"
-setting_file="$vsc_dir/settings.json"
+ccpp_file="$SHELL_DIR/tmp/tmp1"
+launch_file="$SHELL_DIR/tmp/tmp2"
+setting_file="$SHELL_DIR/tmp/tmp3"
 
 #---------------------------------------------------------------------------------#
 #                                     Process                                     #
@@ -39,18 +39,18 @@ setting_file="$vsc_dir/settings.json"
 #
 if [ "$1" = "clean" ]; then
   # Reset the check variables of the dependencies to their defaults
-  echo "check=3" > $DEPC_FILE
+  echo "check=3" > $DEPC_FILE &
 
   # Scan the list of existing output to be removed
   list="$(ls -d $OUT_DIR -f $REPORT_HTML $DOC_DIR/$PROJ_RAW""_ccov.* 2>/dev/null)"
 
   # If there is at least one output, the cleanup process will start
   if ! [ "$list" = "" ]; then
-  process_start clean
+  process_start clean &
 
   # Print a message and sequentially remove the outputs
   for path in $list; do
-      message_red "Removing $path" & rm -rf $path
+      message_red "Removing $path" & rm -rf $path &
   done
 
   process_end clean
@@ -69,7 +69,7 @@ elif [ "$1" = "depend_init" ]; then
   if ! [ "$CCD_DATA" = "$list_ccd" ]; then rm -f $OUT_DIR/*.o & (( check += 1 )); fi
   if ! [ "$LDD_DATA" = "$list_ldd" ]; then rm -f $PROJ_OBJ    & (( check += 2 )); fi
 
-  echo "check=$check" > $DEPC_FILE
+  echo "check=$check" > $DEPC_FILE &
 
 # =================================================================================
 # Action: depend_update
@@ -79,16 +79,16 @@ elif [ "$1" = "depend_update" ]; then
   if [ -f $DEPC_FILE ]; then source $DEPC_FILE; else check=3; fi
 
   if [ $check = 1 ] || [ $check = 3 ]; then
-    echo "CCD_DATA='"$list_ccd"'" > $CCD_FILE
+    echo "CCD_DATA='"$list_ccd"'" > $CCD_FILE &
   fi
 
   if [ $check = 2 ] || [ $check = 3 ]; then
-    echo "LDD_DATA='"$list_ldd"'" > $LDD_FILE
+    echo "LDD_DATA='"$list_ldd"'" > $LDD_FILE &
   fi
 
   # Write to the log file information about the timestamp to begin a new build session
   if [ -e $OUT_DIR ]; then
-    (echo; echo; date +'========================= '%H:%M:%S' '%Y-%m-%d' ========================='; echo) >> $LOG_FILE
+    (echo; echo; date +'========================= '%H:%M:%S' '%Y-%m-%d' ========================='; echo) >> $LOG_FILE &
   fi
 
 # =================================================================================
@@ -96,7 +96,7 @@ elif [ "$1" = "depend_update" ]; then
 # Detail: Run the executable already in the project
 #
 elif [ "$1" = "run" ]; then
-  process_start run
+  process_start run &
   if [ -e $PROJ_EXE ]; then
     check=0
 
@@ -108,17 +108,17 @@ elif [ "$1" = "run" ]; then
     (( time_diff = (time_end - time_start) / 1000000 - 10 ))
 
     if [ $retval = 124 ]; then
-      message_error "$RUN_TIMEOUT timeout has expired"
+      message_error "$RUN_TIMEOUT timeout has expired" &
     else
       check=1
     fi
 
     if [ -e "$REPORT_RAW" ]; then
-      $ECHO "0.duration = $time_diff\n0.status = $check" >> $REPORT_RAW
+      $ECHO "0.duration = $time_diff\n0.status = $check" >> $REPORT_RAW &
     fi
 
   else
-    message_error "[$PROJ_EXE] does not exist"
+    message_error "[$PROJ_EXE] does not exist" &
   fi
   process_end run
 
@@ -128,34 +128,35 @@ elif [ "$1" = "run" ]; then
 #
 elif [ "$1" = "report" ]; then
   if ! [ "$(ls -f $OUT_DIR/*.{ret,gcno} 2>/dev/null)" = "" ]; then
-    process_start report
+    process_start report &
 
     # Clean old report
     list="$(ls -f $REPORT_HTML $DOC_DIR/$PROJ_RAW""_ccov.* 2>/dev/null)"
     for path in $list; do
-      message_red "Removing $path"
+      message_red "Removing $path" &
     done
-    rm -rf $list
+    rm -rf $list &
 
     # Generate report
     # Test report available
     if [ -e $REPORT_RAW ]; then
-      message_green "Generating test report to $REPORT_HTML"
+      message_green "Generating test report to $REPORT_HTML" &
 
       if [ "$RUN_CCOV" = "on" ]; then
-        gen_test_report $(basename $CCOV_HTML)
-        gen_ccov_report
+        gen_test_report $(basename $CCOV_HTML) &
+        gen_ccov_report &
       else
-        gen_test_report
+        gen_test_report &
       fi
-      open_report "test" "$REPORT_HTML"
+      open_report "test" "$REPORT_HTML" &
 
     # Only CCOV report
     elif [ "$RUN_CCOV" = "on" ]; then
-      gen_ccov_report
-      open_report "ccov" "$CCOV_HTML"
+      gen_ccov_report &
+      open_report "ccov" "$CCOV_HTML" &
     fi
 
+    wait
     process_end report
   fi
 
@@ -168,21 +169,22 @@ elif [ "$1" = "move" ]; then
   if [ -e "$newproj_dir" ]; then
     if [ -e "$newproj_dir/user_cfg.mk" ]; then
       if [ "$PROJ_NAME" = "$newproj_name" ]; then
-        message_green "You are here!"
+        message_green "You are here!" &
       else
-        move_project "$PROJ_NAME" "$newproj_name"
+        move_project "$PROJ_NAME" "$newproj_name" &
       fi
     else
-      message_error "[$newproj_name] is a group of projects!"
+      message_error "[$newproj_name] is a group of projects!" &
     fi
 
   else
     if user_response "The [$newproj_name] project does not exist. Do you want to create it?"; then
-      message_blue "Cloning $newproj_dir" & mkdir -p $newproj_dir & rm -rf $TEMP_DIR/out
-      cp -Rf $TEMP_DIR/* $newproj_dir
-      move_project "$PROJ_NAME" "$newproj_name"
+      message_blue "Cloning $newproj_dir" & mkdir -p $newproj_dir & rm -rf $TEMP_DIR/out &
+      cp -Rf $TEMP_DIR/* $newproj_dir &
+      move_project "$PROJ_NAME" "$newproj_name" &
     fi
   fi
+  wait
   process_end move
 
 # =================================================================================
@@ -193,19 +195,20 @@ elif [ "$1" = "remove" ]; then
   process_start remove
   if [ -e "$newproj_dir" ]; then
     if [ "$newproj_name" = "$TEMP_NAME" ]; then
-      message_error "Cannot remove template [$TEMP_NAME] project"
+      message_error "Cannot remove template [$TEMP_NAME] project" &
 
     elif user_response "Do you agree to remove this project or group ($newproj_name)?"; then
-      message_red "Removing $newproj_dir" & \
-      rm -r -f $newproj_dir/*; rmdir -p --ignore-fail-on-non-empty $newproj_dir
+      message_red "Removing $newproj_dir" &
+      rm -r -f $newproj_dir/*; rmdir -p --ignore-fail-on-non-empty $newproj_dir &
       if [[ $PROJ_NAME =~ ^$newproj_name.*$ ]]; then
-        move_project "$PROJ_NAME" "$TEMP_NAME"
+        move_project "$PROJ_NAME" "$TEMP_NAME" &
       fi
     fi
 
   else
-    message_error "The [$newproj_name] project or group does not exist"
+    message_error "The [$newproj_name] project or group does not exist" &
   fi
+  wait
   process_end remove
 
 # =================================================================================
@@ -213,21 +216,22 @@ elif [ "$1" = "remove" ]; then
 # Detail: Import a shared project or group from any CMFramework
 #
 elif [ "$1" = "import" ]; then
-  process_start import
+  process_start import &
   zip_file="$3"
 
   if [[ "$zip_file" == *.zip ]] && ls $zip_file 1>/dev/null 2>&1; then
     if [ -e "$newproj_dir" ]; then
-      message_error "The [$newproj_name] project or group already exist"
+      message_error "The [$newproj_name] project or group already exist" &
     else
-      message_green "Importing into [$newproj_dir]" & \
-      mkdir -p $newproj_dir
-      unzip $zip_file -d $newproj_dir
+      message_green "Importing into [$newproj_dir]" &
+      mkdir -p $newproj_dir &
+      unzip $zip_file -d $newproj_dir &
     fi
 
   else
-    message_error "Zip file does not exist or incorrect format"
+    message_error "Zip file does not exist or incorrect format" &
   fi
+  wait
   process_end import
 
 # =================================================================================
@@ -235,19 +239,20 @@ elif [ "$1" = "import" ]; then
 # Detail: Pack your project or group ready to share
 #
 elif [ "$1" = "export" ]; then
-  process_start export
+  process_start export &
   if [ -e "$newproj_dir" ]; then
     for f in $(find $newproj_dir -type d -name "$(basename $OUT_DIR)"); do
-      message_red "Removing $f" & rm -rf $f
+      message_red "Removing $f" & rm -rf $f &
     done
 
     export_file=$SHARE_DIR/__${newproj_name//\//\~}.zip
-    message_green "Compressing to $export_file" & \
-    cd "$newproj_dir"; zip -r $export_file ./*
+    message_green "Compressing to $export_file" &
+    rm -f $export_file; cd "$newproj_dir"; zip -r $export_file ./*
 
   else
-    message_error "The [$newproj_name] project or group does not exist"
+    message_error "The [$newproj_name] project or group does not exist" &
   fi
+  wait
   process_end export
 
 # =================================================================================
@@ -256,22 +261,22 @@ elif [ "$1" = "export" ]; then
 #
 elif [ "$1" = "vsinit" ]; then
   # Create vscode folder
-  mkdir -p $vsc_dir
+  mkdir -p $vsc_dir &
 
-  # Copy all configuration files
-  cp -f $TOOL_DIR/extend/c_cpp.txt $ccpp_file
-  cp -f $TOOL_DIR/extend/launch.txt $launch_file
-  cp -f $TOOL_DIR/extend/settings.txt $setting_file
+  # Clone all configuration files
+  cp -f $TOOL_DIR/extend/c_cpp.txt $ccpp_file &
+  cp -f $TOOL_DIR/extend/launch.txt $launch_file &
+  cp -f $TOOL_DIR/extend/settings.txt $setting_file &
 
   # Configuration for settings.json
-  sed -i "s|\[\[SED_TEMP_NAME\]\]|$TEMP_NAME|g" "$setting_file"
+  sed -i "s|\[\[SED_TEMP_NAME\]\]|$TEMP_NAME|g" "$setting_file" &
 
   # Configuration for c_cpp_properties.json
   __inc_dirs=""
   for item in $INC_DIRS; do
     __inc_dirs+='\n        "'$item'",'
   done
-  sed -i "s|\[\[SED_INC_DIRS\]\]|$__inc_dirs|g" "$ccpp_file"
+  sed -i "s|\[\[SED_INC_DIRS\]\]|$__inc_dirs|g" "$ccpp_file" &
 
   # Configuration for launch.json
   __var_args=""
@@ -284,7 +289,12 @@ elif [ "$1" = "vsinit" ]; then
   for item in $USER_ENVS; do
     __user_envs+='\n        { "name": "'$item'", "value": "'"$(echo ${!item} | sed 's|\\|\\\\|g; s|"|\\\\"|g; s|\||\\\||g')"'" },'
   done
-  sed -i "s|\[\[SED_PROJ_EXE\]\]|$PROJ_EXE|g; s|\[\[SED_VAR_ARGS\]\]|$__var_args|g; s|\[\[SED_STOP_ENTRY\]\]|$STOP_AT_ENTRY|g; s|\[\[SED_USER_ENVS\]\]|$__user_envs|g; s|\[\[SED_EXT_CONSOLE\]\]|$EXTERNAL_CONSOLE|g" "$launch_file"
+  sed -i "s|\[\[SED_PROJ_EXE\]\]|$PROJ_EXE|g; s|\[\[SED_VAR_ARGS\]\]|$__var_args|g; s|\[\[SED_STOP_ENTRY\]\]|$STOP_AT_ENTRY|g; s|\[\[SED_USER_ENVS\]\]|$__user_envs|g; s|\[\[SED_EXT_CONSOLE\]\]|$EXTERNAL_CONSOLE|g" "$launch_file" &
+
+  # Move all configuration files
+  mv $ccpp_file $vsc_dir/c_cpp_properties.json &
+  mv $launch_file $vsc_dir/launch.json &
+  mv $setting_file $vsc_dir/settings.json &
 
 # =================================================================================
 fi
