@@ -62,7 +62,7 @@ build: _s_build $(PROJ_EXE)
 
 $(PROJ_OBJ): $(OBJ_FILES) | $(BUILD_CHECK)
 	@$(build_start) $(call message_blue, Merging to $@) & \
-	$(call build_cmd, $(LD) $(LDFLAGS) $(OBJ_FILES) -o $@)
+	$(call build_cmd, $(LD) $(LDFLAGS) $(CCOV_LD) $(OBJ_FILES) -o $@)
 
 $(PROJ_EXE): $(PROJ_OBJ) | $(BUILD_CHECK)
 	@$(build_start) $(call message_blue, Linking to $(PROJ_EXE)) & \

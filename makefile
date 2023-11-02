@@ -138,7 +138,7 @@ endif # MAKECMDGOALS
 # Definitions for the code coverage feature
 ifeq ($(RUN_CCOV), on)
   CCOV_CC += -fprofile-arcs -ftest-coverage
-  CCOV_LD += --coverage
+  CCOV_LD += -lgcov --coverage
 endif # RUN_CCOV == on
 
 #---------------------------------------------------------------------------------#
