@@ -17,10 +17,10 @@ export   GREEN         BLUE          GRAY          INVERT        RCOLOR
 export   RED           BASE_DIR      SHARE_DIR     TEMP_NAME     TEMP_DIR
 export   OUT_DIR       DOC_DIR       PROJ_RAW      PROJ_OBJ      PROJ_EXE
 export   GCOVR_EXE     LOG_FILE      DEPC_FILE     START_EXE     REPORT_HTML
-export   CCOV_HTML     CCD_FILE      LDD_FILE      ROOT_DIR      REPORT_EXE
+export   CCOV_HTML     CCD_FILE      LDD_FILE      ROOT_DIR      PROJ_NAME
 export   CCFLAGS       LDFLAGS       CCOV_CC       CCOV_LD       EXTERNAL_CONSOLE
 export   DEV_DIR       INC_DIRS      SHELL_DIR     SHOW_REPORT   STOP_AT_ENTRY
-export   TOOL_DIR      USER_ENVS     REPORT_RAW    USER_NAME     PROJ_NAME
+export   TOOL_DIR      USER_ENVS     REPORT_RAW    USER_NAME
 
 #---------------------------------------------------------------------------------#
 #                                   End of file                                   #

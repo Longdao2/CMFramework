@@ -269,6 +269,7 @@ elif [ "$1" = "vsinit" ]; then
   cp -f $TOOL_DIR/extend/c_cpp.txt $ccpp_file &
   cp -f $TOOL_DIR/extend/launch.txt $launch_file &
   cp -f $TOOL_DIR/extend/settings.txt $setting_file &
+  wait
 
   # Configuration for settings.json
   sed -i "s|\[\[SED_TEMP_NAME\]\]|$TEMP_NAME|g" "$setting_file" &
@@ -292,6 +293,7 @@ elif [ "$1" = "vsinit" ]; then
     __user_envs+='\n        { "name": "'$item'", "value": "'"$(echo ${!item} | sed 's|\\|\\\\|g; s|"|\\\\"|g; s|\||\\\||g')"'" },'
   done
   sed -i "s|\[\[SED_PROJ_EXE\]\]|$PROJ_EXE|g; s|\[\[SED_VAR_ARGS\]\]|$__var_args|g; s|\[\[SED_STOP_ENTRY\]\]|$STOP_AT_ENTRY|g; s|\[\[SED_USER_ENVS\]\]|$__user_envs|g; s|\[\[SED_EXT_CONSOLE\]\]|$EXTERNAL_CONSOLE|g" "$launch_file" &
+  wait
 
   # Move all configuration files
   mv $ccpp_file $vsc_dir/c_cpp_properties.json &
