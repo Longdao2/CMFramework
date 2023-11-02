@@ -50,7 +50,6 @@
 
   PROJ_OBJ     :=  $(OUT_DIR)/$(PROJ_RAW).o
   PROJ_EXE     :=  $(OUT_DIR)/$(PROJ_RAW).exe
-  REPORT_EXE   :=  $(TOOL_DIR)/bin/report.exe
   GCOVR_EXE    :=  gcovr
   START_EXE    :=  cygstart
 
