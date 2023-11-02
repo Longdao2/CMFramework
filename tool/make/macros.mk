@@ -37,7 +37,7 @@ build_cmd      =  (echo; echo $(strip $(1)); echo) >> $(LOG_FILE) & \
 
 build_process  =  $(build_start) $(call message_green, Compiling from $<) & \
                   $(call build_cmd ,$(1) $(CCFLAGS) $(MASK_INC_DIRS) -MMD -MP -MF $(@:%.o=%.d) \
-                  $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g3) $(if $(filter $(dir $<),$(DEV_DIR)/),$(CCOV_CC)) $< -o $@)
+                  $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g3) $(if $(filter $(DEV_DIR)%,$(dir $<)),$(CCOV_CC)) $< -o $@)
 
 build_status   =  $(call message_blue, Status: [$$([ -e $(ERROR_FILE) ] && ($(ECHO) "$(RED)FAIL$(RCOLOR)" & rm -f $(PROJ_EXE)) || \
                   $(ECHO) "$(GREEN)PASS$(RCOLOR)")] -> $(LOG_FILE))
