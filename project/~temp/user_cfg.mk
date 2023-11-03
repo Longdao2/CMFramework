@@ -47,7 +47,7 @@ USER_ENVS := REPORT_RAW USER_NAME PROJ_NAME
 
 # Add compiler and linker flags
 CCFLAGS := -c -Og -W -Wall -Wextra -Wwrite-strings -Wshadow=local -pedantic -fmessage-length=0
-LDFLAGS := -r -Wl,-Map=$(OUT_DIR)/$(PROJ_RAW).map
+LDFLAGS := -Wl,-Map=$(OUT_DIR)/$(PROJ_RAW).map
 
 #---------------------------------------------------------------------------------#
 #                                   VSCode Debug                                  #

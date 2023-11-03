@@ -23,7 +23,7 @@ message_green  =  $(ECHO) "$(GREEN)> $(RCOLOR)$(strip $(1))"
 
 message_blue   =  $(ECHO) "$(BLUE)> $(RCOLOR)$(strip $(1))"
 
-src_depend     =  if [ -e $(OUT_DIR) ]; then echo "SRC_PREV := $(subst ",\",$(SRC_FILES))" > $(PROJ_OBJ:%.o=%.d); fi
+src_depend     =  if [ -e $(OUT_DIR) ]; then echo "SRC_PREV := $(subst ",\",$(SRC_FILES))" > $(PROJ_EXE:.exe=.d); fi
 
 build_tmp      =  $(if $(filter $(BUILD_VAL), 1), $(eval BUILD_VAL := 2) $(eval build_start := ) $(call process_start, build) & )
 
