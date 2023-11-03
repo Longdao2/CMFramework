@@ -47,8 +47,6 @@
   OUT_DIR      :=  $(PROJ_DIR)/out
   DOC_DIR      :=  $(PROJ_DIR)/doc
   PROJ_RAW     :=  __$(subst /,~,$(PROJ_NAME))
-
-  PROJ_OBJ     :=  $(OUT_DIR)/$(PROJ_RAW).o
   PROJ_EXE     :=  $(OUT_DIR)/$(PROJ_RAW).exe
   GCOVR_EXE    :=  gcovr
   START_EXE    :=  cygstart
@@ -179,9 +177,9 @@ endif # plist != ""
 
 ifneq ($(__forced),on)
   ifneq ($(filter quick build %.o $(PROJ_EXE) !w!0, $(MAKECMDGOALS) !w!$(words $(MAKECMDGOALS))),)
-    -include $(PROJ_OBJ:%.o=%.d)
+    -include $(PROJ_EXE:.exe=.d)
     SRC_DEPS := $(addprefix $(OUT_DIR)/,$(notdir $(shell echo "$(filter-out $(SRC_FILES), $(SRC_PREV))" | sed 's/\.[^.]*\(\s\|$$\)/.\* /g')))
-    SILENT := $(shell $(if $(SRC_DEPS), rm -rf $(SRC_DEPS) $(PROJ_OBJ) & ) $(SHELL_DIR)/actions.sh depend_init)
+    SILENT := $(shell $(if $(SRC_DEPS), rm -rf $(SRC_DEPS) $(PROJ_EXE) & ) $(SHELL_DIR)/actions.sh depend_init)
     -include $(OBJ_FILES:%.o=%.d)
   endif # MAKECMDGOALS
   $(info )
