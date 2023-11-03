@@ -67,7 +67,7 @@ elif [ "$1" = "depend_init" ]; then
   check=0
 
   if ! [ "$CCD_DATA" = "$list_ccd" ]; then rm -f $OUT_DIR/*.o & (( check += 1 )); fi
-  if ! [ "$LDD_DATA" = "$list_ldd" ]; then rm -f $PROJ_OBJ    & (( check += 2 )); fi
+  if ! [ "$LDD_DATA" = "$list_ldd" ]; then rm -f $PROJ_EXE    & (( check += 2 )); fi
 
   echo "check=$check" > $DEPC_FILE &
 
