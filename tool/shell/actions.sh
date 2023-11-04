@@ -2,8 +2,8 @@
 # File         actions.sh                                                         #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.5                                                              #
-# Release      10-30-2023                                                         #
+# Version      1.0.6                                                              #
+# Release      11-10-2023                                                         #
 # Copyright    2023 (c) Belongs to Louisvn                                        #
 # Details      C/C++ project management tool - [SH] Actions                       #
 #=================================================================================#
@@ -18,8 +18,8 @@ source $SHELL_DIR/apis.sh
 #                                   Definitions                                   #
 #---------------------------------------------------------------------------------#
 
-list_ccd="$CCFLAGS $CCOV_CC"
-list_ldd="$LDFLAGS $CCOV_LD"
+list_ccd="$CCOPTS $CCOV_CC"
+list_ldd="$LDOPTS $CCOV_LD"
 
 newproj_name="$2"
 newproj_dir="$BASE_DIR/$newproj_name"
@@ -99,6 +99,7 @@ elif [ "$1" = "run" ]; then
   process_start run &
   if [ -e $PROJ_EXE ]; then
     check=0
+    rm -f $OUT_DIR/*.gcda
 
     # Record the start and end times of program execution
     time_start=$(date +%s%N)
@@ -127,7 +128,7 @@ elif [ "$1" = "run" ]; then
 # Detail: Generate test report after running the program
 #
 elif [ "$1" = "report" ]; then
-  if ! [ "$(ls -f $OUT_DIR/*.{ret,gcno} 2>/dev/null)" = "" ]; then
+  if ! [ "$(ls -f $OUT_DIR/*.{ret,gcda} 2>/dev/null)" = "" ]; then
     process_start report &
 
     # Clean old report
@@ -279,18 +280,24 @@ elif [ "$1" = "vsinit" ]; then
   for item in $INC_DIRS; do
     __inc_dirs+='\n        "'$item'",'
   done
-  sed -i "s|\[\[SED_INC_DIRS\]\]|$__inc_dirs|g" "$ccpp_file" &
+
+  __user_defs=""
+  eval "array=(${USER_DEFS//\\\\/\\\\\\\\})"
+  for item in "${array[@]}"; do
+    __user_defs+='\n        "'"$(echo $item | sed 's/^\s*\-D\s*//g; s|\\|\\\\\\\\|g; s|"|\\\\"|g; s|\||\\\||g')"'",'
+  done
+  sed -i "s|\[\[SED_INC_DIRS\]\]|$__inc_dirs|g; s|\[\[SED_USER_DEFS\]\]|$__user_defs|g" "$ccpp_file" &
 
   # Configuration for launch.json
   __var_args=""
-  eval "array=($VAR_ARGS)"
+  eval "array=(${VAR_ARGS//\\\\/\\\\\\\\})"
   for item in "${array[@]}"; do
     __var_args+='\n        "'"$(echo $item | sed 's|\\|\\\\|g; s|"|\\\\"|g; s|\||\\\||g')"'",'
   done
 
   __user_envs=""
   for item in $USER_ENVS; do
-    __user_envs+='\n        { "name": "'$item'", "value": "'"$(echo ${!item} | sed 's|\\|\\\\|g; s|"|\\\\"|g; s|\||\\\||g')"'" },'
+    __user_envs+='\n        { "name": "'$item'", "value": "'"$(echo ${!item} | sed 's|\\|\\\\\\\\|g; s|"|\\\\"|g; s|\||\\\||g')"'" },'
   done
   sed -i "s|\[\[SED_PROJ_EXE\]\]|$PROJ_EXE|g; s|\[\[SED_VAR_ARGS\]\]|$__var_args|g; s|\[\[SED_STOP_ENTRY\]\]|$STOP_AT_ENTRY|g; s|\[\[SED_USER_ENVS\]\]|$__user_envs|g; s|\[\[SED_EXT_CONSOLE\]\]|$EXTERNAL_CONSOLE|g" "$launch_file" &
   wait
