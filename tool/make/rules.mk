@@ -2,8 +2,8 @@
 # File         rules.mk                                                           #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.5                                                              #
-# Release      10-30-2023                                                         #
+# Version      1.0.6                                                              #
+# Release      11-10-2023                                                         #
 # Copyright    2023 (c) Belongs to Louisvn                                        #
 # Details      C/C++ project management tool - [MK] Rules                         #
 #=================================================================================#
@@ -62,7 +62,7 @@ build: _s_build $(PROJ_EXE)
 
 $(PROJ_EXE): $(OBJ_FILES) | $(BUILD_CHECK)
 	@$(build_start) $(call message_blue, Linking to $(PROJ_EXE)) & \
-	$(call build_cmd, $(LD) $(LDFLAGS) $(CCOV_LD) $(OBJ_FILES) -o $@)
+	$(call build_cmd, $(LD) $(LDOPTS) $(CCOV_LD) $(OBJ_FILES) -o $@)
 
 $(OUT_DIR):
 	@$(build_start) $(call message_blue, Adding $@) & mkdir -p $@

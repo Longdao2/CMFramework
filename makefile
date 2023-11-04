@@ -2,8 +2,8 @@
 # File         makefile                                                           #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.5                                                              #
-# Release      10-30-2023                                                         #
+# Version      1.0.6                                                              #
+# Release      11-10-2023                                                         #
 # Copyright    2023 (c) Belongs to Louisvn                                        #
 # Details      C/C++ project management tool - [MK] Main                          #
 #=================================================================================#
@@ -13,7 +13,7 @@
 #---------------------------------------------------------------------------------#
 
 # Path to your project (start at BASE_DIR)
-  PROJ_NAME := ~temp
+  PROJ_NAME := example
 
 # Set bash as default console to run commands
   SHELL = bash
@@ -124,19 +124,22 @@ endif # MAKECMDGOALS
 # Add prefix to the directory containing the header file
   MASK_INC_DIRS := $(addprefix -I,$(INC_DIRS))
 
-# Config for each programming language
-  CC := gcc
-  PP := g++
-  LD := $(if $(filter %.cc %.cpp, $(SRC_FILES)), $(PP), $(CC))
+# Add user definitions
+  CCOPTS += $(USER_DEFS)
 
 # Definitions for testing
-  CCFLAGS += -DUTEST_SUPPORT -DRUN_CCOV=$(if $(filter $(RUN_CCOV),on),1,0)
+  CCOPTS += -DUTEST_SUPPORT -DRUN_CCOV=$(if $(filter $(RUN_CCOV),on),1,0)
 
 # Definitions for the code coverage feature
 ifeq ($(RUN_CCOV), on)
   CCOV_CC += -fprofile-arcs -ftest-coverage
   CCOV_LD += -lgcov --coverage
 endif # RUN_CCOV == on
+
+# Config for each programming language
+  CC := gcc
+  PP := g++
+  LD := $(if $(filter %.cc %.cpp, $(SRC_FILES)), $(PP), $(CC))
 
 #---------------------------------------------------------------------------------#
 #                                      Rules                                      #
