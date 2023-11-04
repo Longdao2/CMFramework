@@ -19,7 +19,7 @@ source $SHELL_DIR/apis.sh
 #---------------------------------------------------------------------------------#
 
 list_ccd="$CCOPTS $CCOV_CC"
-list_ldd="$LDOPTS $CCOV_LD"
+list_ldd="$LDOPTS $CCOV_LD $OBJ_AVAIL"
 
 newproj_name="$2"
 newproj_dir="$BASE_DIR/$newproj_name"

@@ -85,6 +85,7 @@ $(OUT_DIR)/%.o: %.cpp | $(BUILD_CHECK) ; @$(call build_process, $(PP))
 $(OUT_DIR)/%.o: %.cc  | $(BUILD_CHECK) ; @$(call build_process, $(PP))
 
 $(OBJ_NAMES): %.o: $(OUT_DIR)/%.o ; @:
+$(OBJ_AVAIL): ; @:
 
 # =================================================================================
 # Command: [make run]
