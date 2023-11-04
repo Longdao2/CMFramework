@@ -1,8 +1,8 @@
 /**
 * @file     utest.c
 * @author   Long Dao [admin@louisvn.com]
-* @version  0.3
-* @date     2023-10-30
+* @version  0.4
+* @date     2023-11-05
 * @brief    Extension for testing (build only)
 */
 
@@ -48,7 +48,6 @@ void UT_Init(void)
     strftime(formattedTime, sizeof(formattedTime), "%H:%M:%S %m-%d-%Y", localTime);
 
     remove(s_file);
-    UT_SetVar_Num("all_test", __ut_all_tests_size);
     UT_SetVar_Str("exe_time", formattedTime);
     UT_SetVar_Str("user_name", getenv("USER_NAME"));
     UT_SetVar_Str("proj_name", getenv("PROJ_NAME"));

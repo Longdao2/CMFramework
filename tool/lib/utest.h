@@ -1,8 +1,8 @@
 /**
 * @file     utest.h
 * @author   Long Dao [admin@louisvn.com]
-* @version  0.3
-* @date     2023-10-30
+* @version  0.4
+* @date     2023-11-05
 * @brief    APIs to perform testing
 */
 
@@ -21,7 +21,9 @@ extern "C" {
 /** -----------------------------------------------------------------------
 >>>                               Definitions
 --------------------------------------------------------------------------- */
+#ifndef UT_ARGS_FILE_FUNC_LINE
 #define UT_ARGS_FILE_FUNC_LINE  __FILE__, __func__, __LINE__
+#endif /* ifndef UT_ARGS_FILE_FUNC_LINE */
 
 /** -----------------------------------------------------------------------
 >>>                                  APIs
@@ -39,7 +41,7 @@ __attribute__((unused)) static inline void UT_IsFailure(const char file[], const
 
 /**
 * @brief Template to create a test function
-* @param [in] name_func -- The function name cannot be longer than 100 characters
+* @param [in] name_func -- Name of the test function
 */
 #define FuncTest(name_func) void name_func(void)
 
@@ -48,20 +50,22 @@ __attribute__((unused)) static inline void UT_IsFailure(const char file[], const
 
 /**
 * @brief Start defining a test list
+* @attention A container must have at least one test
 */
 #define UT_DEF_S
 
 
 /**
 * @brief Add test to test list
-* @param [in] name_test -- Length no more than 100 characters
-* @param [in] brief -- Length no more than 1000 characters
+* @param [in] name_test -- Name of the function to be tested
+* @param [in] brief -- Brief of this test (in quotes)
 */
 #define UT_AddTest(name_test, brief)
 
 
 /**
 * @brief End defining a test list
+* @attention A container must have at least one test
 */
 #define UT_DEF_E
 
@@ -126,6 +130,7 @@ extern unsigned char __ut_test_checker;
     \
     __attribute__((constructor)) void custom_startup(void) { \
         UT_Init(); \
+        UT_SetVar_Num("all_test", __ut_all_tests_size); \
         \
         for (unsigned int index_case = 0; index_case < __ut_all_tests_size; index_case++) { \
             UT_SetId(index_case + 1); \
