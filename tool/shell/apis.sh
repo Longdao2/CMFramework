@@ -2,8 +2,8 @@
 # File         apis.sh                                                            #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.5                                                              #
-# Release      10-30-2023                                                         #
+# Version      1.0.6                                                              #
+# Release      11-10-2023                                                         #
 # Copyright    2023 (c) Belongs to Louisvn                                        #
 # Details      C/C++ project management tool - [SH] Apis                          #
 #=================================================================================#
@@ -38,31 +38,6 @@ function message_error() { $ECHO "$RED~ ERROR: $1 $RCOLOR"; }
 function message_red  () { $ECHO "$RED>$RCOLOR $1";         }
 function message_green() { $ECHO "$GREEN>$RCOLOR $1";       }
 function message_blue () { $ECHO "$BLUE>$RCOLOR $1";        }
-
-# =================================================================================
-# Func   : gen_ccov_report
-# Brief  : Used to generate a report for code coverage
-# Params : /None/
-# Return : /None/
-#
-function gen_ccov_report() {
-  message_green "Generating ccov report to $CCOV_HTML" &
-  $GCOVR_EXE --root $DEV_DIR --object-directory $OUT_DIR --html-details $CCOV_HTML || \
-  message_error "CCOV report generation failed"
-}
-
-# =================================================================================
-# Func   : open_report
-# Brief  : Used to open an HTML file with the default web browser
-# Params : [1] name_report . [2] url
-# Return : /None/
-#
-function open_report() {
-  if [ -e "$2" ] && [ "$SHOW_REPORT" = "on" ]; then
-    message_blue "Opening $1 report in browser" &
-    $START_EXE "$2" || message_error "Cannot open [$2]"
-  fi
-}
 
 # =================================================================================
 # Func   : user_response
@@ -124,6 +99,31 @@ function gen_test_report() {
     buff+='\n    Add_Test("'$test_name'","'$test_brief'","'$test_duration'","'$test_status'","'$test_fail'");'
   done
   sed -i "s|\[\[SED_ADD_ALL_TEST\]\]|$buff|g" "$REPORT_HTML" &
+}
+
+# =================================================================================
+# Func   : gen_ccov_report
+# Brief  : Used to generate a report for code coverage
+# Params : /None/
+# Return : /None/
+#
+function gen_ccov_report() {
+  message_green "Generating ccov report to $CCOV_HTML" &
+  $GCOVR_EXE --root $DEV_DIR --object-directory $OUT_DIR --html-details $CCOV_HTML || \
+  message_error "CCOV report generation failed"
+}
+
+# =================================================================================
+# Func   : open_report
+# Brief  : Used to open an HTML file with the default web browser
+# Params : [1] name_report . [2] url
+# Return : /None/
+#
+function open_report() {
+  if [ -e "$2" ] && [ "$SHOW_REPORT" = "on" ]; then
+    message_blue "Opening $1 report in browser" &
+    $START_EXE "$2" || message_error "Cannot open [$2]"
+  fi
 }
 
 #---------------------------------------------------------------------------------#
