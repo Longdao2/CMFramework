@@ -82,6 +82,13 @@ ifeq ("$(wildcard $(PROJ_DIR)/user_cfg.mk)","")
   $(error Project [$(PROJ_NAME)] has ceased to exist. So it was brought back to the template project)
 endif
 
+# Check input parameters are valid
+ifneq ($(filter move.% remove.% import.% export.%, $(MAKECMDGOALS)),)
+  ifneq ($(words $(MAKECMDGOALS)),1)
+    $(error You can only use the option [move], [remove], [import] or [export] individually)
+  endif # MAKECMDGOALS
+endif # MAKECMDGOALS
+
 #---------------------------------------------------------------------------------#
 #                                      User                                       #
 #---------------------------------------------------------------------------------#
@@ -98,19 +105,15 @@ endif
 #                                    Analysis                                     #
 #---------------------------------------------------------------------------------#
 
-# Check input parameters are valid
-ifneq ($(filter move.% remove.% import.% export.%, $(MAKECMDGOALS)),)
-  ifneq ($(words $(MAKECMDGOALS)),1)
-    $(error You can only use the option [move], [remove], [import] or [export] individually)
-  endif # MAKECMDGOALS
-endif # MAKECMDGOALS
-
-# Search all source files in the project
-  SRC_FILES += $(foreach SRC_DIR, $(SRC_DIRS), $(wildcard $(SRC_DIR)/*.c $(SRC_DIR)/*.cc $(SRC_DIR)/*.cpp))
-  OBJ_FILES := $(foreach SRC_DIR, $(SRC_DIRS), $(wildcard $(SRC_DIR)/*.o))
-
 # List of source code files that do not support debugging
   SRC_NODEBUG_FILES += utest.c
+
+# Search all source files in the project
+  OBJ_FILES := $(filter %.o, $(SRC_FILES))
+  SRC_FILES := $(filter %.c %.cc %.cpp, $(SRC_FILES))
+  SRC_FILES += $(foreach SRC_DIR, $(SRC_DIRS), $(wildcard $(SRC_DIR)/*.c $(SRC_DIR)/*.cc $(SRC_DIR)/*.cpp))
+  OBJ_FILES += $(foreach SRC_DIR, $(SRC_DIRS), $(wildcard $(SRC_DIR)/*.o))
+  OBJ_AVAIL := $(strip $(OBJ_FILES))
 
   vpath %.c   $(sort $(dir $(SRC_FILES)))
   vpath %.cpp $(sort $(dir $(SRC_FILES)))
@@ -120,6 +123,10 @@ endif # MAKECMDGOALS
 # Parsing file names in the project
   OBJ_NAMES := $(notdir $(shell echo "$(SRC_FILES)" | sed 's/\.[^.]*\(\s\|$$\)/.o /g'))
   OBJ_FILES += $(addprefix $(OUT_DIR)/,$(OBJ_NAMES))
+  ifneq ($(words $(OBJ_FILES)),$(words $(sort $(OBJ_FILES))))
+    $(info Some source files with duplicate names have been detected, which is not supported) $(info ---)
+    $(foreach SRC_FILE, $(SRC_FILES) $(OBJ_AVAIL), $(info $(SRC_FILE))) $(info ---) $(error ERROR ^ )
+  endif
 
 # Add prefix to the directory containing the header file
   MASK_INC_DIRS := $(addprefix -I,$(INC_DIRS))

@@ -20,7 +20,7 @@ export   GCOVR_EXE     LOG_FILE      DEPC_FILE     START_EXE     REPORT_HTML
 export   CCOV_HTML     CCD_FILE      LDD_FILE      ROOT_DIR      PROJ_NAME
 export   CCOPTS        LDOPTS        CCOV_CC       CCOV_LD       EXTERNAL_CONSOLE
 export   DEV_DIR       INC_DIRS      SHELL_DIR     SHOW_REPORT   STOP_AT_ENTRY
-export   TOOL_DIR      USER_ENVS     REPORT_RAW    USER_DEFS
+export   TOOL_DIR      USER_ENVS     REPORT_RAW    USER_DEFS     OBJ_AVAIL
 
 #---------------------------------------------------------------------------------#
 #                                   End of file                                   #
