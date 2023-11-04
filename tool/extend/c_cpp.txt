@@ -6,6 +6,10 @@
       "includePath":
       [[[SED_INC_DIRS]]
         ""
+      ],
+      "defines":
+      [[[SED_USER_DEFS]]
+        ""
       ]
     }
   ],
