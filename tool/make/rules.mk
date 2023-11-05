@@ -37,13 +37,13 @@ setup:
 # Details: Print on the screen some information about the project
 #
 info:
-	@$(call process_start, info);                   \
-	echo "Project Name : $(PROJ_NAME)"            & \
-	echo "User Name    : $(USER_NAME)"            & \
-	echo "Run Timeout  : $(RUN_TIMEOUT)"          & \
-	echo "Run CCOV     : $(RUN_CCOV)"             & \
-	echo "Show Report  : $(SHOW_REPORT)"          & \
-	echo "See More     : $(PROJ_DIR)/user_cfg.mk" & \
+	@$(call process_start, info);                  \
+	echo "Project Name : $(PROJ_NAME)";            \
+	echo "User Name    : $(USER_NAME)";            \
+	echo "Run Timeout  : $(RUN_TIMEOUT)";          \
+	echo "Run CCOV     : $(RUN_CCOV)";             \
+	echo "Show Report  : $(SHOW_REPORT)";          \
+	echo "See More     : $(PROJ_DIR)/user_cfg.mk"; \
 	$(call process_end, info)
 
 # =================================================================================
@@ -62,7 +62,7 @@ build: _s_build $(PROJ_EXE)
 
 $(PROJ_EXE): $(OBJ_FILES) | $(BUILD_CHECK)
 	@$(build_start) $(call message_blue, Linking to $(PROJ_EXE)) & \
-	$(call build_cmd, $(LD) $(LDOPTS) $(CCOV_LD) $(OBJ_FILES) -o $@)
+	$(call build_cmd, $(LD_PATH) $(LDOPTS) $(CCOV_LD) $(OBJ_FILES) -o $@)
 
 $(OUT_DIR):
 	@$(build_start) $(call message_blue, Adding $@) & mkdir -p $@
@@ -80,9 +80,9 @@ _check_depend:
 # Command: [make <src_name>.o]
 # Details: Compile the specific c/cpp/cc file to the corresponding o file
 #
-$(OUT_DIR)/%.o: %.c   | $(BUILD_CHECK) ; @$(call build_process, $(CC))
-$(OUT_DIR)/%.o: %.cpp | $(BUILD_CHECK) ; @$(call build_process, $(PP))
-$(OUT_DIR)/%.o: %.cc  | $(BUILD_CHECK) ; @$(call build_process, $(PP))
+$(OUT_DIR)/%.o: %.c   | $(BUILD_CHECK) ; @$(call build_process, $(CC_PATH))
+$(OUT_DIR)/%.o: %.cpp | $(BUILD_CHECK) ; @$(call build_process, $(PP_PATH))
+$(OUT_DIR)/%.o: %.cc  | $(BUILD_CHECK) ; @$(call build_process, $(PP_PATH))
 
 $(OBJ_NAMES): %.o: $(OUT_DIR)/%.o ; @:
 $(OBJ_AVAIL): ; @:
