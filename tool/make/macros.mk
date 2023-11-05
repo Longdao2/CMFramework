@@ -36,7 +36,7 @@ build_cmd      =  (echo; echo "$(subst ",\",$(subst \,\\,$(subst \\,\\\,$(strip 
                   if ! [ -z "$$log" ]; then (echo WARN; echo "$$log"; echo) | tee -a $(LOG_FILE); fi
 
 build_process  =  $(build_start) $(call message_green, Compiling from $<) & \
-                  $(call build_cmd ,$(1) -c $(CCOPTS) $(MASK_INC_DIRS) -MMD -MP -MF $(@:%.o=%.d) \
+                  $(call build_cmd ,$(1) -c $(CCOPTS) $(MASK_INC_DIRS) -MMD -MP -MF $(@:%.o=%.d) -MT $@ \
                   $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g3) $(if $(filter $(DEV_DIR)/%,$(dir $<)),$(CCOV_CC)) $< -o $@)
 
 build_status   =  $(call message_blue, Status: [$$([ -e $(ERROR_FILE) ] && ($(ECHO) "$(RED)FAIL$(RCOLOR)" & rm -f $(PROJ_EXE)) || \
