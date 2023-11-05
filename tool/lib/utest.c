@@ -66,7 +66,7 @@ void UT_SetId(int id)
 void UT_SetBrief(const char brief[])
 {
     UT_SET_START
-        fprintf(f, "%d.brief = %.*s\n", s_id, strlen(brief) - 2, brief + 1);
+        fprintf(f, "%d.brief = %.*s\n", s_id, (int)strlen(brief) - 2, brief + 1);
     UT_SET_END
 }
 

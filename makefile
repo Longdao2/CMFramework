@@ -123,10 +123,17 @@ endif # MAKECMDGOALS
 # Parsing file names in the project
   OBJ_NAMES := $(notdir $(shell echo "$(SRC_FILES)" | sed 's/\.[^.]*\(\s\|$$\)/.o /g'))
   OBJ_FILES += $(addprefix $(OUT_DIR)/,$(OBJ_NAMES))
-  ifneq ($(words $(OBJ_FILES)),$(words $(sort $(OBJ_FILES))))
-    $(info Some source files with duplicate names have been detected, which is not supported) $(info ---)
-    $(foreach SRC_FILE, $(SRC_FILES) $(OBJ_AVAIL), $(info $(SRC_FILE))) $(info ---) $(error ERROR ^ )
-  endif
+  OBJ_DUPES := $(shell echo $(OBJ_FILES) $(PROJ_EXE:%.exe=%.o) | tr ' ' '\n' | tr '[:upper:]' '[:lower:]' | sort | uniq -d)
+
+ifneq ($(__forced),on)
+  ifeq ($(plist),)
+    ifneq ($(OBJ_DUPES),)
+      $(info Some object file names have been detected to duplicated after analysis) $(info ---)
+      $(foreach OBJ_DUPE, $(OBJ_DUPES), $(info $(OBJ_DUPE))) $(info ---)
+      $(error Please check all source files [make __forced=on print.SRC_FILES.OBJ_AVAIL])
+    endif # OBJ_DUPES != ""
+  endif # plist == ""
+endif # __forced != on
 
 # Add prefix to the directory containing the header file
   MASK_INC_DIRS := $(addprefix -I,$(INC_DIRS))
@@ -143,10 +150,10 @@ ifeq ($(RUN_CCOV), on)
   CCOV_LD += -lgcov --coverage
 endif # RUN_CCOV == on
 
-# Config for each programming language
-  CC := gcc
-  PP := g++
-  LD := $(if $(filter %.cc %.cpp, $(SRC_FILES)), $(PP), $(CC))
+# Config for each programming language (Default)
+  CC_PATH ?= gcc
+  PP_PATH ?= g++
+  LD_PATH := $(if $(filter %.cc %.cpp, $(SRC_FILES)), $(PP_PATH), $(CC_PATH))
 
 #---------------------------------------------------------------------------------#
 #                                      Rules                                      #
@@ -168,7 +175,7 @@ ifneq ($(plist),)
   endif # MAKECMDGOALS
 
 $(word 1,$(MAKECMDGOALS)) _all:
-	@$(foreach CURR_PROJ, $(plist), $(ECHO) "\n=============== Project: $(CURR_PROJ) ==============="; \
+	-@$(foreach CURR_PROJ, $(plist), $(ECHO) "\n=============== Project: $(CURR_PROJ) ==============="; \
 	if [ -e $(BASE_DIR)/$(CURR_PROJ)/user_cfg.mk ]; then $(MAKE) plist="" PROJ_NAME=$(CURR_PROJ) $(MAKECMDGOALS); \
 	else echo; $(call message_error, This project does not exist\n); fi; )
 
@@ -187,7 +194,7 @@ endif # plist != ""
 
 ifneq ($(__forced),on)
   ifneq ($(filter quick build %.o $(PROJ_EXE) !w!0, $(MAKECMDGOALS) !w!$(words $(MAKECMDGOALS))),)
-    -include $(PROJ_EXE:.exe=.d)
+    -include $(PROJ_EXE:%.exe=%.d)
     SRC_DEPS := $(addprefix $(OUT_DIR)/,$(notdir $(shell echo "$(filter-out $(SRC_FILES), $(SRC_PREV))" | sed 's/\.[^.]*\(\s\|$$\)/.\* /g')))
     SILENT := $(shell $(if $(SRC_DEPS), rm -rf $(SRC_DEPS) $(PROJ_EXE) & ) $(SHELL_DIR)/actions.sh depend_init)
     -include $(OBJ_FILES:%.o=%.d)
