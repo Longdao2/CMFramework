@@ -47,7 +47,7 @@ INC_DIRS := $(PROJ_DIR)/inc \
 VAR_ARGS := 
 
 # Add compiler and linker options
-CCOPTS := -Og -W -Wall -Wextra -Wwrite-strings -Wshadow=local -pedantic -fmessage-length=0
+CCOPTS := -Og -Wall -Wextra -Wwrite-strings -Wshadow=local -pedantic -fmessage-length=0
 ASOPTS := -Og -Wall
 LDOPTS := -Wl,-Map=$(OUT_DIR)/$(PROJ_RAW).map
 
