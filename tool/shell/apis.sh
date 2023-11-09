@@ -70,6 +70,35 @@ function move_project() {
 }
 
 # =================================================================================
+# Func   : run_cmd
+# Brief  : Used to run the program with timeout
+# Params : [1] mode (normal|script)
+# Return : /None/
+#
+function run_cmd() {
+  time_start=$(date +%s%N)
+  if [ "$1" = "normal" ]; then
+    eval "array=(${VAR_ARGS})"
+    (timeout --kill-after=0s $RUN_TIMEOUT $PROJ_EXE "${array[@]}") && retval=$? || retval=$?
+  else
+    (timeout --kill-after=0s $RUN_TIMEOUT $DB_EXE -q -batch -ex "set args $VAR_ARGS" -x $DB_SCRIPT $PROJ_EXE) && retval=$? || retval=$?
+  fi
+  time_end=$(date +%s%N)
+
+  (( time_diff = (time_end - time_start) / 1000000 - 10 ))
+
+  if [ $retval = 124 ]; then
+    message_error "$RUN_TIMEOUT timeout has expired" &
+  else
+    check=1
+  fi
+
+  if [ -e "$REPORT_RAW" ]; then
+    $ECHO "0.duration = $time_diff\n0.status = $check" >> $REPORT_RAW &
+  fi
+}
+
+# =================================================================================
 # Func   : gen_test_report
 # Brief  : Generate a test report from test results (using utest)
 # Params : [1] ccov_name
