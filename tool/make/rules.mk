@@ -50,8 +50,20 @@ info:
 # Command: [make clean]
 # Details: Clean all files in project output
 #
-clean:
-	@$(SHELL_DIR)/actions.sh clean
+# Command: [make run]
+# Details: Run the executable already in the project
+#
+# Command: [make debug]
+# Details: Debug the executable already in the project using GDB
+#
+# Command: [make report]
+# Details: Generate test report after running the program
+#
+# Command: [make vsinit]
+# Details: Configure VSCode so that the software links to the correct path
+#
+clean run debug report vsinit:
+	@$(SHELL_DIR)/actions.sh $@
 
 # =================================================================================
 # Command: [make build]
@@ -62,7 +74,7 @@ build: _s_build $(PROJ_EXE)
 
 $(PROJ_EXE): $(OBJ_FILES) | $(BUILD_CHECK)
 	@$(build_start) $(call message_blue, Linking to $(PROJ_EXE)) & \
-	$(call build_cmd, $(LD_PATH) $(LDOPTS) $(CCOV_LD) $(OBJ_FILES) -o $@)
+	$(call build_cmd, $(LD_EXE) $(LDOPTS) $(CCOV_LD) $(OBJ_FILES) -o $@)
 
 $(OUT_DIR):
 	@$(build_start) $(call message_blue, Adding $@) & mkdir -p $@
@@ -80,33 +92,15 @@ _check_depend:
 # Command: [make <src_name>.o]
 # Details: Compile the specific c/cpp/cc file to the corresponding o file
 #
-$(OUT_DIR)/%.o: %.c   | $(BUILD_CHECK) ; @$(call build_process, $(CC_PATH))
-$(OUT_DIR)/%.o: %.cpp | $(BUILD_CHECK) ; @$(call build_process, $(PP_PATH))
-$(OUT_DIR)/%.o: %.cc  | $(BUILD_CHECK) ; @$(call build_process, $(PP_PATH))
+$(OUT_DIR)/%.c.o: %.c     | $(BUILD_CHECK) ; @$(call build_process, $(CC_EXE), CCOPTS)
+$(OUT_DIR)/%.C.o: %.C     | $(BUILD_CHECK) ; @$(call build_process, $(PP_EXE), CCOPTS)
+$(OUT_DIR)/%.s.o: %.s     | $(BUILD_CHECK) ; @$(call build_process, $(AS_EXE), ASOPTS)
+$(OUT_DIR)/%.S.o: %.S     | $(BUILD_CHECK) ; @$(call build_process, $(AS_EXE), ASOPTS)
+$(OUT_DIR)/%.cc.o: %.cc   | $(BUILD_CHECK) ; @$(call build_process, $(PP_EXE), CCOPTS)
+$(OUT_DIR)/%.cpp.o: %.cpp | $(BUILD_CHECK) ; @$(call build_process, $(PP_EXE), CCOPTS)
 
 $(OBJ_NAMES): %.o: $(OUT_DIR)/%.o ; @:
 $(OBJ_AVAIL): ; @:
-
-# =================================================================================
-# Command: [make run]
-# Details: Run the executable already in the project
-#
-run: | _check_project
-	@$(SHELL_DIR)/actions.sh run
-
-# =================================================================================
-# Command: [make report]
-# Details: Generate test report after running the program
-#
-report: | _check_project
-	@$(SHELL_DIR)/actions.sh report
-
-# =================================================================================
-# Command: [make vsinit]
-# Details: Configure VSCode so that the software links to the correct path (only support GDB)
-#
-vsinit:
-	@$(SHELL_DIR)/actions.sh vsinit
 
 # =================================================================================
 # Command: [make list]

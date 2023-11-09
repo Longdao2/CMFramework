@@ -36,10 +36,10 @@ build_cmd      =  (echo; echo "$(subst ",\",$(subst \,\\,$(subst \\,\\\,$(strip 
                   if ! [ -z "$$log" ]; then (echo WARN; echo "$$log"; echo) | tee -a $(LOG_FILE); fi
 
 build_process  =  $(build_start) $(call message_green, Compiling from $<) & \
-                  $(call build_cmd ,$(1) -c $(CCOPTS) $(MASK_INC_DIRS) -MMD -MP -MF $(@:%.o=%.d) -MT $@ \
-                  $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g3) $(if $(filter $(DEV_DIR)/%,$(dir $<)),$(CCOV_CC)) $< -o $@)
+                  $(call build_cmd ,$(1) -c $($(strip $(2))) $(MASK_INC_DIRS) -MMD -MP -MF $(@:%.o=%.d) \
+                  $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g) $(if $(filter CCOPTS>$(DEV_DIR)/%,$(2)>$(dir $<)),$(CCOV_CC)) $< -o $@)
 
-build_status   =  $(call message_blue, Status: [$$([ -e $(ERROR_FILE) ] && ($(ECHO) "$(RED)FAIL$(RCOLOR)" & rm -f $(PROJ_EXE)) || \
+build_status   =  $(call message_blue, Status: [$$([ -e $(ERROR_FILE) ] && ($(ECHO) "$(RED)FAIL$(RCOLOR)" & rm -f $(OUT_DIR)/*.exe $(OUT_DIR)/*.map) || \
                   $(ECHO) "$(GREEN)PASS$(RCOLOR)")] -> $(LOG_FILE))
 
 convert_path   =  $(subst \,/,$(patsubst $(strip $(1)).%,%,$@))

@@ -61,4 +61,6 @@ project/asms/
 project/tests/
 project/*/doc/*.html
 project/*/doc/*.css
+project/*/*/doc/*.html
+project/*/*/doc/*.css
 tool/shell/tmp/
