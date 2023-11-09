@@ -226,7 +226,7 @@
   <script>
     document.getElementById("notsp").style.display = "none";
     document.getElementById("cpc").innerHTML = "© " + new Date().getFullYear() + ". ";
-    var vTotal = 0, vPass = 0, vFail = 0, vError = 0, pGcov = "";
+    var vTotal = 0, vPass = 0, vFail = 0, vError = 0, vDuration = 0, pGcov = "";
     const tags = [];
 
     const _pass = document.querySelectorAll("._pass");
@@ -243,88 +243,49 @@
       window.open(pGcov, "_blank");
     }
 
-    function Filter(opt)
+    function Add_Test(name,brief,duration,retsult,fail)
     {
-      if (opt == 'all') tags.forEach(tag => { tag.style.display = 'block'; });
-      if (opt == 'pass') tags.forEach(tag => { if (tag.id === '_pass') tag.style.display = 'block'; else tag.style.display = 'none'; });
-      if (opt == 'fail') tags.forEach(tag => { if (tag.id === '_fail') tag.style.display = 'block'; else tag.style.display = 'none'; });
-      if (opt == 'error') tags.forEach(tag => { if (tag.id === '_error') tag.style.display = 'block'; else tag.style.display = 'none'; });
-      c_all.classList.remove("press");
-      c_pass.classList.remove("press");
-      c_fail.classList.remove("press");
-      c_error.classList.remove("press");
-
-      if (opt == "all") c_all.classList.add("press");
-      if (opt == "pass") c_pass.classList.add("press");
-      if (opt == "fail") c_fail.classList.add("press");
-      if (opt == "error") c_error.classList.add("press");
-    }
-
-    function Total_Result()
-    {
-      if (vTotal == vPass) {
-        document.getElementById("tb4").innerHTML = "All tests passed. See details below";
-        document.getElementById("tb4").style.background = "#9ae29c";
-      } else {
-        document.getElementById("tb4").innerHTML = "Some tests failed or had errors. See details below";
-        document.getElementById("tb4").style.background = "#ffcccc";
-      }
-      if (pGcov != "") {
-        document.getElementById("c_ccov").style.display = "block";
-      }
-      c_all.innerHTML = "ALL &ensp;" + vTotal;
-      c_pass.innerHTML = "PASS &ensp;" + vPass;
-      c_fail.innerHTML = "FAIL &ensp;" + vFail;
-      c_error.innerHTML = "ERROR &ensp;" + vError;
-    }
-
-    function Add_Infor(proj,user,time,duration,check)
-    {
-      if (duration == "") duration = "--";
-
-      if ((duration != "--") && (check == "1"))
-        document.getElementById("tb5").style.background = "#9ae29c";
-      else
-        document.getElementById("tb5").style.background = "#ffcccc";
-
-      document.getElementById("tb1").innerHTML = proj.replace(/\//g, "&ensp;/&ensp;");
-      document.getElementById("tb2").innerHTML = user;
-      document.getElementById("tb3").innerHTML = time;
-      document.getElementById("tb5").innerHTML = "Execution time : " + duration + " ms";
-    }
-
-    function Add_Test(name,brief,duration,retsult,fail = "")
-    {
-      var _duration, _status, _id, _id1 = "col3";
+      var _duration = 0, status, id, id1 = "col3";
       vTotal = vTotal + 1;
 
       if (retsult != "") {
-        if (duration == "0") _duration = "less than 1";
-        else _duration = duration;
+        if (duration == "0") duration = "less than 1 us";
+        else if (duration == "") duration = "--";
+        else {
+          _duration = parseInt(duration)
+          vDuration += _duration
+          if (_duration < 1000)
+            duration = duration + " us";
+          else if (_duration < 1000000)
+            duration = (_duration / 1000) + " ms"
+          else
+            duration = Math.round((_duration / 1000000) * 1000) / 1000 + " s"
+        }
+
         if (retsult == "0") {
           vFail = vFail + 1;
-          _id = "fail";
-          _status = "Failed";
+          id = "fail";
+          status = "Failed";
         }
         else if (retsult == "1") {
           vPass = vPass + 1;
-          _id = "pass";
-          _status = "Success";
+          id = "pass";
+          status = "Success";
         }
       }
-      else if (retsult == "") {
+      else /* if (retsult == "") */ {
         vError = vError + 1;
-        _duration = "--";
-        _id = "error";
-        _id1 = "fail";
+        duration = "--";
+        id = "error";
+        id1 = "fail";
         if (vError == 1)
-          _status = "Aborted or not executed";
+          status = "Aborted or not executed";
         else
-          _status = "Not executed";
+          status = "Not executed";
       }
 
       if (fail != "") {
-        _status += "<br>Some assertions have been detected to fail ▾<div class='fail_block'>" + fail.trim() + "</div>";
+        status += "<br>Some assertions have been detected to fail ▾<div class='fail_block'>" + fail.trim() + "</div>";
       }
 
       var str = `
@@ -344,28 +305,96 @@
           </tr>
           <tr>
             <td id="col1">STATUS</td>
-            <td id="` + _id + `">` + _status + `</td>
-            <td id="` + _id1 + `">Execution time : ` + _duration + ` us</td>
+            <td id="` + id + `">` + status + `</td>
+            <td id="` + id1 + `">Execution time : ` + duration + `</td>
           </tr>
         </table>
       `;
 
       const tag = document.createElement("div");
       tag.classList.add("tag");
-      tag.setAttribute("id", "_" + _id);
+      tag.setAttribute("id", "_" + id);
       document.getElementById("all_tests").appendChild(tag);
       tag.innerHTML = str;
       tags.push(tag);
     }
 
-    pGcov = "[[SED_REPORT_CCOV]]";
+    function Add_Infor(proj,user,time,duration,check)
+    {
+      var cDuration = "", _duration = 0;
 
-    Add_Infor("[[SED_PROJ_NAME]]", "[[SED_USER_NAME]]", "[[SED_TIMESTAMP]]", "[[SED_TIME_EXEC]]", "[[SED_CHECK_STATUS]]");
+      if (duration == "") duration = "--";
+
+      if ((duration != "--") && (check == "1")) {
+        _duration = parseInt(duration);
+        if (_duration < (vDuration / 1000))
+          cDuration = " ??";
+
+        if (_duration < 1000)
+          duration = duration + " ms" + cDuration;
+        else
+          duration = (_duration / 1000) + " s" + cDuration;
+        document.getElementById("tb5").style.background = "#9ae29c";
+      }
+      else
+        document.getElementById("tb5").style.background = "#ffcccc";
+
+      document.getElementById("tb1").innerHTML = proj.replace(/\//g, "&ensp;/&ensp;");
+      document.getElementById("tb2").innerHTML = user;
+      document.getElementById("tb3").innerHTML = time;
+      document.getElementById("tb5").innerHTML = "Execution time : " + duration;
+
+      if (vTotal == vPass) {
+        document.getElementById("tb4").innerHTML = "All tests passed. See details below";
+        document.getElementById("tb4").style.background = "#9ae29c";
+      } else {
+        document.getElementById("tb4").innerHTML = "Some tests failed or had errors. See details below";
+        document.getElementById("tb4").style.background = "#ffcccc";
+      }
+      if (pGcov != "") {
+        document.getElementById("c_ccov").style.display = "block";
+      }
+      c_all.innerHTML = "ALL &ensp;" + vTotal;
+      c_pass.innerHTML = "PASS &ensp;" + vPass;
+      c_fail.innerHTML = "FAIL &ensp;" + vFail;
+      c_error.innerHTML = "ERROR &ensp;" + vError;
+    }
+
+    function Filter(opt)
+    {
+      c_all.classList.remove("press");
+      c_pass.classList.remove("press");
+      c_fail.classList.remove("press");
+      c_error.classList.remove("press");
+
+      switch (opt) {
+        case "all":
+          tags.forEach(tag => { tag.style.display = 'block'; });
+          c_all.classList.add("press");
+          break;
+        case "pass":
+          tags.forEach(tag => { if (tag.id === '_pass') tag.style.display = 'block'; else tag.style.display = 'none'; });
+          c_pass.classList.add("press");
+          break;
+        case "fail":
+          tags.forEach(tag => { if (tag.id === '_fail') tag.style.display = 'block'; else tag.style.display = 'none'; });
+          c_fail.classList.add("press");
+          break;
+        case "error":
+          tags.forEach(tag => { if (tag.id === '_error') tag.style.display = 'block'; else tag.style.display = 'none'; });
+          c_error.classList.add("press");
+          break;
+        default:
+          break;
+      }
+    }
+
+    pGcov = "[[SED_REPORT_CCOV]]";
 
     /* Add_Test("TEST_NAME","TEST_BRIEF","DURATION","RESULT","FAIL_LOG"); */ [[SED_ADD_ALL_TEST]]
 
+    Add_Infor("[[SED_PROJ_NAME]]", "[[SED_USER_NAME]]", "[[SED_TIMESTAMP]]", "[[SED_TIME_EXEC]]", "[[SED_CHECK_STATUS]]");
     Filter("all");
-    Total_Result();
   </script>
 </body>
 
