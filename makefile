@@ -13,7 +13,7 @@
 #---------------------------------------------------------------------------------#
 
 # Path to your project (start at BASE_DIR)
-  PROJ_NAME := exam/gdb_script
+  PROJ_NAME := exam/hello_world
 
 # Set bash as default console to run commands
   SHELL = bash
