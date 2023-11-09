@@ -13,7 +13,7 @@
 #---------------------------------------------------------------------------------#
 
 # Path to your project (start at BASE_DIR)
-  PROJ_NAME := example
+  PROJ_NAME := exam/hello_world
 
 # Set bash as default console to run commands
   SHELL = bash
@@ -59,6 +59,7 @@
   CCOV_HTML    :=  $(DOC_DIR)/$(PROJ_RAW)_ccov.html
   DEPC_FILE    :=  $(SHELL_DIR)/tmp/$(PROJ_RAW)_chk.sh
   CCD_FILE     :=  $(SHELL_DIR)/tmp/$(PROJ_RAW)_ccd.sh
+  ASD_FILE     :=  $(SHELL_DIR)/tmp/$(PROJ_RAW)_asd.sh
   LDD_FILE     :=  $(SHELL_DIR)/tmp/$(PROJ_RAW)_ldd.sh
 
 #---------------------------------------------------------------------------------#
@@ -110,29 +111,30 @@ endif # MAKECMDGOALS
 
 # Search all source files in the project
   OBJ_FILES := $(filter %.o, $(SRC_FILES))
-  SRC_FILES := $(filter %.c %.cc %.cpp, $(SRC_FILES))
-  SRC_FILES += $(foreach SRC_DIR, $(SRC_DIRS), $(wildcard $(SRC_DIR)/*.c $(SRC_DIR)/*.cc $(SRC_DIR)/*.cpp))
+  SRC_FILES := $(filter %.c %.C %.s %.S %.cc %.cpp, $(SRC_FILES))
+  SRC_FILES += $(foreach SRC_DIR, $(SRC_DIRS), $(wildcard $(SRC_DIR)/*.[cCsS] $(SRC_DIR)/*.cc $(SRC_DIR)/*.cpp))
   OBJ_FILES += $(foreach SRC_DIR, $(SRC_DIRS), $(wildcard $(SRC_DIR)/*.o))
   OBJ_AVAIL := $(strip $(OBJ_FILES))
 
   vpath %.c   $(sort $(dir $(SRC_FILES)))
-  vpath %.cpp $(sort $(dir $(SRC_FILES)))
+  vpath %.C   $(sort $(dir $(SRC_FILES)))
+  vpath %.s   $(sort $(dir $(SRC_FILES)))
+  vpath %.S   $(sort $(dir $(SRC_FILES)))
   vpath %.cc  $(sort $(dir $(SRC_FILES)))
+  vpath %.cpp $(sort $(dir $(SRC_FILES)))
   vpath %.o   $(sort $(dir $(OBJ_FILES)))
 
 # Parsing file names in the project
-  OBJ_NAMES := $(notdir $(shell echo "$(SRC_FILES)" | sed 's/\.[^.]*\(\s\|$$\)/.o /g'))
+  OBJ_NAMES := $(addsuffix .o,$(notdir $(SRC_FILES)))
   OBJ_FILES += $(addprefix $(OUT_DIR)/,$(OBJ_NAMES))
   OBJ_DUPES := $(shell echo $(OBJ_FILES) $(PROJ_EXE:%.exe=%.o) | tr ' ' '\n' | tr '[:upper:]' '[:lower:]' | sort | uniq -d)
 
 ifneq ($(__forced),on)
-  ifeq ($(plist),)
-    ifneq ($(OBJ_DUPES),)
-      $(info Some object file names have been detected to duplicated after analysis) $(info ---)
-      $(foreach OBJ_DUPE, $(OBJ_DUPES), $(info $(OBJ_DUPE))) $(info ---)
-      $(error Please check all source files [make __forced=on print.SRC_FILES.OBJ_AVAIL])
-    endif # OBJ_DUPES != ""
-  endif # plist == ""
+  ifneq ($(OBJ_DUPES),)
+    $(info Some object file names have been detected to duplicated after analysis) $(info ---)
+    $(foreach OBJ_DUPE, $(OBJ_DUPES), $(info $(OBJ_DUPE))) $(info ---)
+    $(error Please check all source files [make __forced=on print.SRC_FILES.OBJ_AVAIL])
+  endif # OBJ_DUPES != ""
 endif # __forced != on
 
 # Add prefix to the directory containing the header file
@@ -140,6 +142,7 @@ endif # __forced != on
 
 # Add user definitions
   CCOPTS += $(USER_DEFS)
+  ASOPTS += $(USER_DEFS)
 
 # Definitions for testing
   CCOPTS += -DUTEST_SUPPORT -DRUN_CCOV=$(if $(filter $(RUN_CCOV),on),1,0)
@@ -150,10 +153,24 @@ ifeq ($(RUN_CCOV), on)
   CCOV_LD += -lgcov --coverage
 endif # RUN_CCOV == on
 
+# List of dependencies to re-compile and re-link
+LIST_CCD := $(strip $(CCOPTS) $(CCOV_CC))
+LIST_ASD := $(strip $(ASOPTS))
+LIST_LDD := $(strip $(LDOPTS) $(CCOV_LD) $(OBJ_AVAIL))
+
 # Config for each programming language (Default)
-  CC_PATH ?= gcc
-  PP_PATH ?= g++
-  LD_PATH := $(if $(filter %.cc %.cpp, $(SRC_FILES)), $(PP_PATH), $(CC_PATH))
+ifeq ($(CC_PATH),)
+  CC_EXE := gcc
+  AS_EXE := gcc
+  PP_EXE := g++
+  DB_EXE := gdb
+else # CC_PATH != ""
+  CC_EXE := $(CC_PATH)/bin/gcc.exe
+  AS_EXE := $(CC_PATH)/bin/gcc.exe
+  PP_EXE := $(CC_PATH)/bin/g++.exe
+  DB_EXE := $(CC_PATH)/bin/gdb.exe
+endif # CC_PATH == ""
+  LD_EXE := $(if $(filter %.C %.cc %.cpp, $(SRC_FILES)), $(PP_EXE), $(CC_EXE))
 
 #---------------------------------------------------------------------------------#
 #                                      Rules                                      #
@@ -166,27 +183,8 @@ endif # RUN_CCOV == on
 # Extension rules (Please do not use them directly)
   .PHONY: _all _s_build _check_project _check_depend
 
-# Supports a queue that allows execution across multiple projects
-ifneq ($(plist),)
-  __forced := on
-
-  ifneq ($(filter move.% remove.% import.% export.%, $(MAKECMDGOALS)),)
-    $(error Options [move], [remove], [import] and [export] cannot be used in the list of projects)
-  endif # MAKECMDGOALS
-
-$(word 1,$(MAKECMDGOALS)) _all:
-	-@$(foreach CURR_PROJ, $(plist), $(ECHO) "\n=============== Project: $(CURR_PROJ) ==============="; \
-	if [ -e $(BASE_DIR)/$(CURR_PROJ)/user_cfg.mk ]; then $(MAKE) plist="" PROJ_NAME=$(CURR_PROJ) $(MAKECMDGOALS); \
-	else echo; $(call message_error, This project does not exist\n); fi; )
-
-$(filter-out $(word 1, $(MAKECMDGOALS)), $(MAKECMDGOALS)):
-	@:
-
-# Rules for each project
-else # plist == ""
   BUILD_CHECK := _check_project $(OUT_DIR) _check_depend
   include $(TOOL_DIR)/make/rules.mk
-endif # plist != ""
 
 #---------------------------------------------------------------------------------#
 #                                   Dependencies                                  #

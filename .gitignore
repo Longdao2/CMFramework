@@ -58,8 +58,9 @@ share/
 project/test/
 project/tools/
 project/asms/
-project/exasms/
 project/tests/
 project/*/doc/*.html
 project/*/doc/*.css
+project/*/*/doc/*.html
+project/*/*/doc/*.css
 tool/shell/tmp/

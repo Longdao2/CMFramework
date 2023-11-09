@@ -12,13 +12,13 @@
 #---------------------------------------------------------------------------------#
 
 # Your full name to show in the terminal and test report
-USER_NAME := Long Dao Hai
+USER_NAME := Your Full Name
 
 # Run with time out (seconds)
-RUN_TIMEOUT := 0.5s
+RUN_TIMEOUT := 2.0s
 
 # Run with CCOV report (on/off)
-RUN_CCOV := on
+RUN_CCOV := off
 
 # Show the report to the web browser after it is generated (on/off)
 SHOW_REPORT := off
@@ -32,26 +32,28 @@ DEV_DIR := $(PROJ_DIR)/dev
 
 # Declare all paths to source files (.c .cpp .cc .o) here
 SRC_DIRS := $(PROJ_DIR)/src \
-            $(TOOL_DIR)/lib \
-            $(DEV_DIR)/hexa/src
+            $(TOOL_DIR)/lib
 
 # Note: any of the files below shall not be in SRC_DIRS
 SRC_FILES := 
 
 # Declare all paths to header files (.h .hpp .hh) here
 INC_DIRS := $(PROJ_DIR)/inc \
-            $(TOOL_DIR)/lib \
-            $(DEV_DIR)/hexa/inc
+            $(TOOL_DIR)/lib
 
 # Add arguments for the executable to run
 VAR_ARGS := 
 
 # Add compiler and linker options
-CCOPTS := -Og -W -Wall -Wextra -Wwrite-strings -Wshadow=local -pedantic -fmessage-length=0
+CCOPTS := -Og -Wall -Wextra -Wwrite-strings -Wshadow=local -pedantic -fmessage-length=0
+ASOPTS := -Og -Wall
 LDOPTS := -Wl,-Map=$(OUT_DIR)/$(PROJ_RAW).map
 
 # [-D] User definitions. Will also be applied to the VSCode interface
 USER_DEFS := 
+
+# Run the program with the GDB script
+DB_SCRIPT := $(PROJ_DIR)/run_script.gdb
 
 #---------------------------------------------------------------------------------#
 #                                   VSCode Debug                                  #
