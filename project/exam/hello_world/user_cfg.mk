@@ -1,6 +1,6 @@
 #=================================================================================#
 # File         user_cfg.mk                                                        #
-# Author       ...                                                                #
+# Author       Long Dao                                                           #
 # Version      1.0.6                                                              #
 # Release      11-10-2023                                                         #
 # Copyright    2023 (c) Belongs to Louisvn                                        #

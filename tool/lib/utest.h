@@ -49,6 +49,14 @@ __attribute__((unused)) static inline void UT_IsFailure(const char file[], const
 #ifndef UTEST_SUPPORT
 
 /**
+* @brief Create a label in Assembly that can be used for debugging
+* @param [in] label -- Name of label
+* @attention Each label can only be defined once
+*/
+#define UT_InjectionPoint(label)
+
+
+/**
 * @brief Start defining a test list
 * @attention A container must have at least one test
 */
@@ -112,6 +120,10 @@ double DU_GetValue(void);
 extern const UT_TestCase_t __ut_all_tests[];
 extern const unsigned int __ut_all_tests_size;
 extern unsigned char __ut_test_checker;
+
+/* ======================================================================== */
+
+#define UT_InjectionPoint(label) asm volatile (#label":")
 
 /* ======================================================================== */
 

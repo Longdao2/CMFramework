@@ -18,9 +18,6 @@ source $SHELL_DIR/apis.sh
 #                                   Definitions                                   #
 #---------------------------------------------------------------------------------#
 
-list_ccd="$CCOPTS $CCOV_CC"
-list_ldd="$LDOPTS $CCOV_LD $OBJ_AVAIL"
-
 newproj_name="$2"
 newproj_dir="$BASE_DIR/$newproj_name"
 
@@ -39,7 +36,7 @@ setting_file="$SHELL_DIR/tmp/tmp3"
 #
 if [ "$1" = "clean" ]; then
   # Reset the check variables of the dependencies to their defaults
-  echo "check=3" > $DEPC_FILE &
+  echo "check=7" > $DEPC_FILE &
 
   # Scan the list of existing output to be removed
   list="$(ls -d $OUT_DIR -f $REPORT_HTML $DOC_DIR/$PROJ_RAW""_ccov.* 2>/dev/null)"
@@ -62,12 +59,14 @@ if [ "$1" = "clean" ]; then
 #
 elif [ "$1" = "depend_init" ]; then
   if [ -f $CCD_FILE ]; then source $CCD_FILE; else CCD_DATA=""; fi
+  if [ -f $ASD_FILE ]; then source $ASD_FILE; else ASD_DATA=""; fi
   if [ -f $LDD_FILE ]; then source $LDD_FILE; else LDD_DATA=""; fi
 
   check=0
 
-  if ! [ "$CCD_DATA" = "$list_ccd" ]; then rm -f $OUT_DIR/* & (( check += 1 )); fi
-  if ! [ "$LDD_DATA" = "$list_ldd" ]; then rm -f $OUT_DIR/*.exe $OUT_DIR/*.map & (( check += 2 )); fi
+  if ! [ "$CCD_DATA" = "$LIST_CCD" ]; then rm -f $OUT_DIR/*.c.* $OUT_DIR/*.C.* $OUT_DIR/*.cc.* $OUT_DIR/*.cpp.* & (( check += 1 )); fi
+  if ! [ "$ASD_DATA" = "$LIST_ASD" ]; then rm -f $OUT_DIR/*.s.* $OUT_DIR/*.S.* & (( check += 2 )); fi
+  if ! [ "$LDD_DATA" = "$LIST_LDD" ]; then rm -f $OUT_DIR/*.exe $OUT_DIR/*.map & (( check += 4 )); fi
 
   echo "check=$check" > $DEPC_FILE &
 
@@ -76,14 +75,18 @@ elif [ "$1" = "depend_init" ]; then
 # Detail: Update the dependency list if it was changed previously
 #
 elif [ "$1" = "depend_update" ]; then
-  if [ -f $DEPC_FILE ]; then source $DEPC_FILE; else check=3; fi
+  if [ -f $DEPC_FILE ]; then source $DEPC_FILE; else check=7; fi
 
-  if [ $check = 1 ] || [ $check = 3 ]; then
-    echo "CCD_DATA='"$list_ccd"'" > $CCD_FILE &
+  if [ $check = 1 ] || [ $check = 3 ] || [ $check = 5 ] || [ $check = 7 ]; then
+    echo "CCD_DATA='"$LIST_CCD"'" > $CCD_FILE &
   fi
 
-  if [ $check = 2 ] || [ $check = 3 ]; then
-    echo "LDD_DATA='"$list_ldd"'" > $LDD_FILE &
+  if [ $check = 2 ] || [ $check = 3 ] || [ $check = 6 ] || [ $check = 7 ]; then
+    echo "ASD_DATA='"$LIST_ASD"'" > $ASD_FILE &
+  fi
+
+  if [ $check = 4 ] || [ $check = 5 ] || [ $check = 6 ] || [ $check = 7 ]; then
+    echo "LDD_DATA='"$LIST_LDD"'" > $LDD_FILE &
   fi
 
   # Write to the log file information about the timestamp to begin a new build session
@@ -96,32 +99,43 @@ elif [ "$1" = "depend_update" ]; then
 # Detail: Run the executable already in the project
 #
 elif [ "$1" = "run" ]; then
-  process_start run &
+  process_start run & rm -f $OUT_DIR/*.gcda $REPORT_RAW &
+
   if [ -e $PROJ_EXE ]; then
     check=0
-    rm -f $OUT_DIR/*.gcda
 
     # Record the start and end times of program execution
-    time_start=$(date +%s%N)
-    timeout --kill-after=0s $RUN_TIMEOUT $PROJ_EXE $VAR_ARGS && retval=$? || retval=$?
-    time_end=$(date +%s%N)
-
-    (( time_diff = (time_end - time_start) / 1000000 - 10 ))
-
-    if [ $retval = 124 ]; then
-      message_error "$RUN_TIMEOUT timeout has expired" &
+    if [ "$DB_SCRIPT" = "" ]; then
+      run_cmd normal &
     else
-      check=1
-    fi
-
-    if [ -e "$REPORT_RAW" ]; then
-      $ECHO "0.duration = $time_diff\n0.status = $check" >> $REPORT_RAW &
+      if !( [ -e $DB_SCRIPT ] && [[ "$DB_SCRIPT" == *.gdb ]] ); then
+        message_error "GDB script file does not exist or incorrect format" &
+      else
+        run_cmd script &
+      fi
     fi
 
   else
     message_error "[$PROJ_EXE] does not exist" &
   fi
+  wait
   process_end run
+
+# =================================================================================
+# Action: debug
+# Detail: Debug the executable already in the project using GDB
+#
+elif [ "$1" = "debug" ]; then
+  process_start debug & rm -f $OUT_DIR/*.gcda &
+
+  if [ -e $PROJ_EXE ]; then
+    $DB_EXE -q -ex "set args $VAR_ARGS" $PROJ_EXE || :
+  else
+    message_error "[$PROJ_EXE] does not exist"
+  fi
+
+  rm -f $REPORT_RAW &
+  process_end debug
 
 # =================================================================================
 # Action: report
@@ -282,9 +296,9 @@ elif [ "$1" = "vsinit" ]; then
   done
 
   __user_defs=""
-  eval "array=(${USER_DEFS//\\\\/\\\\\\\\})"
+  eval "array=(${USER_DEFS//\\\\/\\\\\\})"
   for item in "${array[@]}"; do
-    __user_defs+='\n        "'"$(echo $item | sed 's/^\s*\-D\s*//g; s|\\|\\\\\\\\|g; s|"|\\\\"|g; s|\||\\\||g')"'",'
+    __user_defs+='\n        "'"$(echo $item | sed 's/^\s*\-D\s*//g; s|\\|\\\\\\\\|g; s|"|\\\\\\"|g; s|\||\\\||g')"'",'
   done
   sed -i "s|\[\[SED_INC_DIRS\]\]|$__inc_dirs|g; s|\[\[SED_USER_DEFS\]\]|$__user_defs|g" "$ccpp_file" &
 
@@ -292,7 +306,7 @@ elif [ "$1" = "vsinit" ]; then
   __var_args=""
   eval "array=(${VAR_ARGS//\\\\/\\\\\\\\})"
   for item in "${array[@]}"; do
-    __var_args+='\n        "'"$(echo $item | sed 's|\\|\\\\|g; s|"|\\\\"|g; s|\||\\\||g')"'",'
+    __var_args+='\n        "'"$(echo $item | sed 's|\\|\\\\\\\\|g; s|"|\\\\\\\\\\\\\\\\\\\\"|g; s|\||\\\||g')"'",'
   done
 
   __user_envs=""
