@@ -30,7 +30,7 @@ force: clean build run
 #
 setup:
 	@dos2unix -q $(SHELL_DIR)/* $(TOOL_DIR)/extend/* make.sh makefile & \
-	rm -rf $(SHELL_DIR)/tmp; mkdir -p $(SHELL_DIR)/tmp & $(MAKE) __forced=on vsinit
+	rm -rf $(SHELL_DIR)/tmp; mkdir -p $(SHELL_DIR)/tmp & $(MAKE) force=on vsinit
 
 # =================================================================================
 # Command: [make info]
