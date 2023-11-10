@@ -66,7 +66,7 @@ function user_response() {
 function move_project() {
   message_blue "Moving [$1] -> [$2]" &
   sed -i -e "s/^\s*PROJ_NAME\s*:*=.*$/  PROJ_NAME := ${2//\//\\/}/g" $ROOT_DIR/makefile &
-  $MAKE PROJ_NAME="$2" __forced=on vsinit
+  $MAKE PROJ_NAME="$2" force=on vsinit
 }
 
 # =================================================================================
