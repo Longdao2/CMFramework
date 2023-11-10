@@ -30,13 +30,13 @@ SHOW_REPORT := off
 # Declare path to development files here
 DEV_DIR := $(PROJ_DIR)/dev
 
-# Declare all paths to source files (.c .cpp .cc .o) here
+# Declare all paths to source files (.[c/s/cc/cpp/o]) here
 SRC_DIRS := $(PROJ_DIR)/src
 
 # Note: any of the files below shall not be in SRC_DIRS
 SRC_FILES := 
 
-# Declare all paths to header files (.h .hpp .hh) here
+# Declare all paths to header files (.[h/hh/hpp]) here
 INC_DIRS := $(PROJ_DIR)/inc
 
 # Add arguments for the executable to run
