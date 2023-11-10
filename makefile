@@ -35,7 +35,7 @@
   SRC_PREV     :=
 
 # Base paths (start at Framework folder)
-  ROOT_DIR     :=  $(shell pwd | sed -e 's/\/cygdrive\/\(.\)/\1:/')
+  ROOT_DIR     :=  $(shell pwd | sed -e 's/^\(\/cygdrive\)*\/\(.\)/\2:/')
   BASE_DIR     :=  $(ROOT_DIR)/project
   TOOL_DIR     :=  $(ROOT_DIR)/tool
   SHELL_DIR    :=  ./tool/shell
