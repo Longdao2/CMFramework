@@ -30,21 +30,21 @@ force: clean build run
 #
 setup:
 	@dos2unix -q $(SHELL_DIR)/* $(TOOL_DIR)/extend/* make.sh makefile & \
-	rm -rf $(SHELL_DIR)/tmp; mkdir -p $(SHELL_DIR)/tmp & $(MAKE) force=on vsinit
+	rm -rf $(SHELL_DIR)/tmp; mkdir -p $(SHELL_DIR)/tmp & $(MAKE) bypass=on vsinit
 
 # =================================================================================
 # Command: [make info]
 # Details: Print on the screen some information about the project
 #
 info:
-	@$(call process_start, info);                  \
+	@$(call process_start, info); echo;            \
 	echo "Project Name : $(PROJ_NAME)";            \
 	echo "User Name    : $(USER_NAME)";            \
 	echo "Run Timeout  : $(RUN_TIMEOUT)";          \
 	echo "Run CCOV     : $(RUN_CCOV)";             \
 	echo "Show Report  : $(SHOW_REPORT)";          \
 	echo "See More     : $(PROJ_DIR)/user_cfg.mk"; \
-	$(call process_end, info)
+	echo; $(call process_end, info)
 
 # =================================================================================
 # Command: [make clean]
@@ -90,7 +90,7 @@ _check_depend:
 
 # =================================================================================
 # Command: [make <src_name>.o]
-# Details: Compile the specific c/cpp/cc file to the corresponding o file
+# Details: Compile the specific c/C/s/S/cc/cpp file to the corresponding o file
 #
 $(OUT_DIR)/%.c.o: %.c     | $(BUILD_CHECK) ; @$(call build_process, $(CC_EXE), CCOPTS)
 $(OUT_DIR)/%.C.o: %.C     | $(BUILD_CHECK) ; @$(call build_process, $(PP_EXE), CCOPTS)
@@ -107,7 +107,7 @@ $(OBJ_AVAIL): ; @:
 # Details: Print to the screen the names of files and folders in the project
 #
 list:
-	@$(call process_start, list) & tree $(PROJ_DIR); $(call process_end, list)
+	@$(call process_start, list); echo; tree $(PROJ_DIR); echo; $(call process_end, list)
 
 # =================================================================================
 # Command: [make move.{project}]
@@ -145,9 +145,8 @@ $(SHARE_DIR): ; @mkdir -p $@
 #
 print.%:
 	@$(call process_start, print); \
-	$(ECHO) "$(foreach BASE,$(subst ., ,$(@:print.%=%)), \n$(BLUE)$(BASE) =$(RCOLOR) $(foreach SUB,$($(BASE)), \
-	\n    $(strip $(subst ",\",$(subst \,\\,$(SUB)))))\n )"; \
-	$(call process_end, print)
+	$(ECHO) "$(foreach LI,$(subst ., ,$(@:print.%=%)),\n$(LI) =$(foreach UL,$($(LI)),\n  $(strip $(subst ",\",$(subst \,\\,$(UL)))))\n)"; \
+	$(call process_end, print);
 
 #---------------------------------------------------------------------------------#
 #                                   End of file                                   #
