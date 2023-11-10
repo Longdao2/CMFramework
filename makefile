@@ -129,13 +129,13 @@ endif # MAKECMDGOALS
   OBJ_FILES += $(addprefix $(OUT_DIR)/,$(OBJ_NAMES))
   OBJ_DUPES := $(shell echo $(OBJ_FILES) $(PROJ_EXE:%.exe=%.o) | tr ' ' '\n' | tr '[:upper:]' '[:lower:]' | sort | uniq -d)
 
-ifneq ($(__forced),on)
+ifneq ($(force),on)
   ifneq ($(OBJ_DUPES),)
     $(info Some object file names have been detected to duplicated after analysis) $(info ---)
     $(foreach OBJ_DUPE, $(OBJ_DUPES), $(info $(OBJ_DUPE))) $(info ---)
-    $(error Please check all source files [make __forced=on print.SRC_FILES.OBJ_AVAIL])
+    $(error Please check all source files [make force=on print.SRC_FILES.OBJ_AVAIL])
   endif # OBJ_DUPES != ""
-endif # __forced != on
+endif # force != on
 
 # Add prefix to the directory containing the header file
   MASK_INC_DIRS := $(addprefix -I,$(INC_DIRS))
@@ -190,7 +190,7 @@ endif # CC_PATH == ""
 #                                   Dependencies                                  #
 #---------------------------------------------------------------------------------#
 
-ifneq ($(__forced),on)
+ifneq ($(force),on)
   ifneq ($(filter quick build %.o $(PROJ_EXE) !w!0, $(MAKECMDGOALS) !w!$(words $(MAKECMDGOALS))),)
     -include $(PROJ_EXE:%.exe=%.d)
     SRC_DEPS := $(addprefix $(OUT_DIR)/,$(notdir $(shell echo "$(filter-out $(SRC_FILES), $(SRC_PREV))" | sed 's/\.[^.]*\(\s\|$$\)/.\* /g')))
@@ -198,7 +198,7 @@ ifneq ($(__forced),on)
     -include $(OBJ_FILES:%.o=%.d)
   endif # MAKECMDGOALS
   $(info )
-endif # __forced != on
+endif # force != on
 
 #---------------------------------------------------------------------------------#
 #                                   End of file                                   #
