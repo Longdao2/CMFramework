@@ -12,9 +12,9 @@
 #                                      Macros                                     #
 #---------------------------------------------------------------------------------#
 
-process_start  =  $(ECHO) "$(INVERT)<<< Start $(strip $(1)) $(RCOLOR)\n"
+process_start  =  $(ECHO) "$(INVERT)<<< Start $(strip $(1)) $(RCOLOR)"
 
-process_end    =  $(ECHO) "$(GRAY)$(INVERT)"; \
+process_end    =  $(ECHO) -n "$(GRAY)$(INVERT)"; \
                   date +'>>> Finish $(strip $(1)) at '%H:%M:%S' on '%Y-%m-%d' '; $(ECHO) "$(RCOLOR)"
 
 message_error  =  $(ECHO) "$(RED)~ ERROR: $(strip $(1)) $(RCOLOR)"
@@ -25,11 +25,11 @@ message_blue   =  $(ECHO) "$(BLUE)> $(RCOLOR)$(strip $(1))"
 
 src_depend     =  if [ -e $(OUT_DIR) ]; then echo "SRC_PREV := $(subst ",\",$(SRC_FILES))" > $(PROJ_EXE:.exe=.d); fi
 
-build_tmp      =  $(if $(filter $(BUILD_VAL), 1), $(eval BUILD_VAL := 2) $(eval build_start := ) $(call process_start, build) & )
+build_tmp      =  $(if $(filter $(BUILD_VAL), 1), $(eval BUILD_VAL := 2) $(eval build_start := ) $(call process_start, build); echo; )
 
 build_start    =  $(build_tmp)
 
-build_end      =  $(call process_end, build) $(eval build_start = $(build_tmp))
+build_end      =  echo; $(call process_end, build) $(eval build_start = $(build_tmp))
 
 build_cmd      =  (echo; echo "$(subst ",\",$(subst \,\\,$(subst \\,\\\,$(strip $(1)))))"; echo) >> $(LOG_FILE) & \
                   log=$$($(subst \\,\\\,$(1)) 2>&1 || touch $(ERROR_FILE)); \
