@@ -1,7 +1,7 @@
 {
   "configurations": [
     {
-      "name": "Make: Debug C/C++ Project",
+      "name": "CMFramework Debug",
       "type": "cppdbg",
       "request": "launch",
       "program": "[[SED_PROJ_EXE]]",
