@@ -1,10 +1,15 @@
 {
   "code-runner.executorMap":
   {
-    "c": "make # $fileNameWithoutExt",
-    "cpp": "make # $fileNameWithoutExt",
-    "h": "make # $fileNameWithoutExt",
-    "makefile": "make # $fileName"
+    "c": "make # $fileName",
+    "s": "make # $fileName",
+    "cc": "make # $fileName",
+    "cpp": "make # $fileName",
+    "h": "make # $fileName",
+    "hh": "make # $fileName",
+    "hpp": "make # $fileName",
+    "makefile": "make # $fileName",
+    "html": "start"
   },
 
   "files.exclude":
