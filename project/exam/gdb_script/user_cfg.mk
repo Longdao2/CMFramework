@@ -12,7 +12,7 @@
 #---------------------------------------------------------------------------------#
 
 # Your full name to show in the terminal and test report
-USER_NAME := Your Full Name
+USER_NAME := Long Dao Hai
 
 # Run with time out (seconds)
 RUN_TIMEOUT := 2.0s
