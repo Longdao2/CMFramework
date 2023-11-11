@@ -13,7 +13,6 @@
 #---------------------------------------------------------------------------------#
 
 params=("$@")
-params_size=${#params[@]}
 curr_opt=0
 exclude_opts="move remove import export debug"
 make_opts=()
@@ -23,7 +22,7 @@ proj_list=()
 #                                   Get params                                    #
 #---------------------------------------------------------------------------------#
 
-for (( i=0; i<params_size; i++ ))
+for (( i=0; i<$#; i++ ))
 {
   if [ "${params[$i]}" = ":::" ]; then
     (( curr_opt = 1 ))
