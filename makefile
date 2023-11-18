@@ -154,9 +154,9 @@ ifeq ($(RUN_CCOV), on)
 endif # RUN_CCOV == on
 
 # List of dependencies to re-compile and re-link
-LIST_CCD := $(strip $(CCOPTS) $(CCOV_CC))
-LIST_ASD := $(strip $(ASOPTS))
-LIST_LDD := $(strip $(LDOPTS) $(CCOV_LD) $(OBJ_AVAIL))
+  LIST_CCD := $(strip $(CCOPTS) $(CCOV_CC))
+  LIST_ASD := $(strip $(ASOPTS))
+  LIST_LDD := $(strip $(LDOPTS) $(CCOV_LD) $(OBJ_AVAIL))
 
 # Config for each programming language (Default)
 ifeq ($(CC_PATH),)
