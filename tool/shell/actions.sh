@@ -195,7 +195,7 @@ elif [ "$1" = "move" ]; then
     fi
 
   else
-    if user_response "The [$newproj_name] project does not exist. Do you want to create it?"; then
+    if user_response "The [$newproj_name] project does not exist. Do you want to create it?" y; then
       message_blue "Cloning $newproj_dir" & mkdir -p $newproj_dir & rm -rf $TEMP_DIR/out &
       cp -Rf $TEMP_DIR/* $newproj_dir &
       move_project "$PROJ_NAME" "$newproj_name" &
@@ -214,7 +214,7 @@ elif [ "$1" = "remove" ]; then
     if [ "$newproj_name" = "$TEMP_NAME" ]; then
       message_error "Cannot remove template [$TEMP_NAME] project" &
 
-    elif user_response "Do you agree to remove this project or group ($newproj_name)?"; then
+    elif user_response "Do you agree to remove this project or group ($newproj_name)?" y; then
       message_red "Removing $newproj_dir" &
       rm -r -f $newproj_dir/*; rmdir -p --ignore-fail-on-non-empty $newproj_dir &
       if [[ $PROJ_NAME =~ ^$newproj_name.*$ ]]; then
