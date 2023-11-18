@@ -12,7 +12,7 @@
 #                                     Export                                      #
 #---------------------------------------------------------------------------------#
 
-export   RUN_TIMEOUT   VAR_ARGS      MAKE          ECHO          RUN_CCOV
+export   RUN_TIMEOUT   VAR_ARGS      MAKE ECHO     RUN_CCOV      bypass
 export   GREEN         RED BLUE      GRAY          INVERT        RCOLOR
 export   PROJ_NAME     BASE_DIR      SHARE_DIR     TEMP_NAME     TEMP_DIR
 export   OUT_DIR       DOC_DIR       PROJ_RAW      PROJ_EXE      USER_NAME
