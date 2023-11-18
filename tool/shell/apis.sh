@@ -42,13 +42,19 @@ function message_blue () { $ECHO "$BLUE>$RCOLOR $1";        }
 # =================================================================================
 # Func   : user_response
 # Brief  : Used to display a message and prompt for user input [Y/N]
-# Params : [1] message
+# Params : [1] message | [2] default (y|n|Y|N)
 # Return : 0 if the user chooses Y . 1 if the user chooses N
 #
 function user_response() {
   while true; do
     $ECHO -n "$GREEN<$RCOLOR $1 [Y/N]: "
-    read response
+    if [ "$bypass" = "on" ]; then
+      response="$2"
+      $ECHO "$2"
+    else
+      read response
+    fi
+
     if   [[ $response =~ ^[Yy]$ ]]; then
       return 0  #  true
     elif [[ $response =~ ^[Nn]$ ]]; then
