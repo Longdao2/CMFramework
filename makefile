@@ -57,7 +57,7 @@
   REPORT_RAW   :=  $(OUT_DIR)/$(PROJ_RAW).ret
   REPORT_HTML  :=  $(DOC_DIR)/$(PROJ_RAW).html
   CCOV_HTML    :=  $(DOC_DIR)/$(PROJ_RAW)_ccov.html
-  DEPC_FILE    :=  $(SHELL_DIR)/tmp/$(PROJ_RAW)_chk.sh
+  CHK_FILE     :=  $(SHELL_DIR)/tmp/$(PROJ_RAW)_chk.sh
   CCD_FILE     :=  $(SHELL_DIR)/tmp/$(PROJ_RAW)_ccd.sh
   ASD_FILE     :=  $(SHELL_DIR)/tmp/$(PROJ_RAW)_asd.sh
   LDD_FILE     :=  $(SHELL_DIR)/tmp/$(PROJ_RAW)_ldd.sh
@@ -158,8 +158,8 @@ endif # RUN_CCOV == on
   LIST_ASD := $(strip $(ASOPTS))
   LIST_LDD := $(strip $(LDOPTS) $(CCOV_LD) $(OBJ_AVAIL))
 
-# Config for each programming language (Default)
-ifeq ($(CC_PATH),)
+# Config for each programming language
+ifeq ($(CC_PATH),) # Default
   CC_EXE := gcc
   AS_EXE := gcc
   PP_EXE := g++

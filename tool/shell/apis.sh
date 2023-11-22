@@ -82,6 +82,8 @@ function move_project() {
 # Return : /None/
 #
 function run_cmd() {
+  check=0
+
   time_start=$(date +%s%N)
   if [ "$1" = "normal" ]; then
     eval "array=(${VAR_ARGS})"

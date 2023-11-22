@@ -30,13 +30,15 @@ setting_file="$SHELL_DIR/tmp/tmp3"
 #                                     Process                                     #
 #---------------------------------------------------------------------------------#
 
+case "$1" in
+
 # =================================================================================
 # Action: clean
 # Detail: Clean all files in project output
 #
-if [ "$1" = "clean" ]; then
+clean)
   # Reset the check variables of the dependencies to their defaults
-  echo "check=7" > $DEPC_FILE &
+  echo "check=abc" > $CHK_FILE &
 
   # Scan the list of existing output to be removed
   list="$(ls -d $OUT_DIR -f $REPORT_HTML $DOC_DIR/$PROJ_RAW""_ccov.* 2>/dev/null)"
@@ -47,45 +49,47 @@ if [ "$1" = "clean" ]; then
 
   # Print a message and sequentially remove the outputs
   for path in $list; do
-      message_red "Removing $path" & rm -rf $path &
+    message_red "Removing $path" & rm -rf $path &
   done
 
   process_end clean
   fi
+;;
 
 # =================================================================================
 # Action: depend_init
 # Detail: Check for changes in the dependency list
 #
-elif [ "$1" = "depend_init" ]; then
+depend_init)
   if [ -f $CCD_FILE ]; then source $CCD_FILE; else CCD_DATA=""; fi
   if [ -f $ASD_FILE ]; then source $ASD_FILE; else ASD_DATA=""; fi
   if [ -f $LDD_FILE ]; then source $LDD_FILE; else LDD_DATA=""; fi
 
-  check=0
+  check=
 
-  if ! [ "$CCD_DATA" = "$LIST_CCD" ]; then rm -f $OUT_DIR/*.c.* $OUT_DIR/*.C.* $OUT_DIR/*.cc.* $OUT_DIR/*.cpp.* & (( check += 1 )); fi
-  if ! [ "$ASD_DATA" = "$LIST_ASD" ]; then rm -f $OUT_DIR/*.s.* $OUT_DIR/*.S.* & (( check += 2 )); fi
-  if ! [ "$LDD_DATA" = "$LIST_LDD" ]; then rm -f $OUT_DIR/*.exe $OUT_DIR/*.map & (( check += 4 )); fi
+  if ! [ "$CCD_DATA" = "$LIST_CCD" ]; then rm -f $OUT_DIR/*.c.* $OUT_DIR/*.C.* $OUT_DIR/*.cc.* $OUT_DIR/*.cpp.* & check+=a; fi
+  if ! [ "$ASD_DATA" = "$LIST_ASD" ]; then rm -f $OUT_DIR/*.s.* $OUT_DIR/*.S.* & check+=b; fi
+  if ! [ "$LDD_DATA" = "$LIST_LDD" ]; then rm -f $OUT_DIR/*.exe $OUT_DIR/*.map & check+=c; fi
 
-  echo "check=$check" > $DEPC_FILE &
+  echo "check=$check" > $CHK_FILE &
+;;
 
 # =================================================================================
 # Action: depend_update
 # Detail: Update the dependency list if it was changed previously
 #
-elif [ "$1" = "depend_update" ]; then
-  if [ -f $DEPC_FILE ]; then source $DEPC_FILE; else check=7; fi
+depend_update)
+  if [ -f $CHK_FILE ]; then source $CHK_FILE; else check=abc; fi
 
-  if [ $check = 1 ] || [ $check = 3 ] || [ $check = 5 ] || [ $check = 7 ]; then
+  if [[ $check =~ a ]]; then
     echo "CCD_DATA='"$LIST_CCD"'" > $CCD_FILE &
   fi
 
-  if [ $check = 2 ] || [ $check = 3 ] || [ $check = 6 ] || [ $check = 7 ]; then
+  if [[ $check =~ b ]]; then
     echo "ASD_DATA='"$LIST_ASD"'" > $ASD_FILE &
   fi
 
-  if [ $check = 4 ] || [ $check = 5 ] || [ $check = 6 ] || [ $check = 7 ]; then
+  if [[ $check =~ c ]]; then
     echo "LDD_DATA='"$LIST_LDD"'" > $LDD_FILE &
   fi
 
@@ -93,18 +97,16 @@ elif [ "$1" = "depend_update" ]; then
   if [ -e $OUT_DIR ]; then
     (echo; echo; date +'========================= '%H:%M:%S' '%Y-%m-%d' ========================='; echo) >> $LOG_FILE &
   fi
+;;
 
 # =================================================================================
 # Action: run
 # Detail: Run the executable already in the project
 #
-elif [ "$1" = "run" ]; then
+run)
   process_start run & rm -f $OUT_DIR/*.gcda $REPORT_RAW &
 
   if [ -e $PROJ_EXE ]; then
-    check=0
-
-    # Record the start and end times of program execution
     if [ "$DB_SCRIPT" = "" ]; then
       run_cmd normal &
     else
@@ -120,12 +122,13 @@ elif [ "$1" = "run" ]; then
   fi
   wait
   process_end run
+;;
 
 # =================================================================================
 # Action: debug
 # Detail: Debug the executable already in the project using GDB
 #
-elif [ "$1" = "debug" ]; then
+debug)
   process_start debug & rm -f $OUT_DIR/*.gcda &
 
   if [ -e $PROJ_EXE ]; then
@@ -136,12 +139,13 @@ elif [ "$1" = "debug" ]; then
 
   rm -f $REPORT_RAW &
   process_end debug
+;;
 
 # =================================================================================
 # Action: report
 # Detail: Generate test report after running the program
 #
-elif [ "$1" = "report" ]; then
+report)
   if ! [ "$(ls -f $OUT_DIR/*.{ret,gcda} 2>/dev/null)" = "" ]; then
     process_start report &
 
@@ -176,12 +180,13 @@ elif [ "$1" = "report" ]; then
     wait
     process_end report
   fi
+;;
 
 # =================================================================================
 # Action: move
 # Detail: Move to new project (automatically create if it doesn't exist)
 #
-elif [ "$1" = "move" ]; then
+move)
   process_start move
   if [ -e "$newproj_dir" ]; then
     if [ -e "$newproj_dir/user_cfg.mk" ]; then
@@ -203,12 +208,13 @@ elif [ "$1" = "move" ]; then
   fi
   wait
   process_end move
+;;
 
 # =================================================================================
 # Action: remove
 # Detail: Remove an existing project or group
 #
-elif [ "$1" = "remove" ]; then
+remove)
   process_start remove
   if [ -e "$newproj_dir" ]; then
     if [ "$newproj_name" = "$TEMP_NAME" ]; then
@@ -227,12 +233,13 @@ elif [ "$1" = "remove" ]; then
   fi
   wait
   process_end remove
+;;
 
 # =================================================================================
 # Action: import
 # Detail: Import a shared project or group from any CMFramework
 #
-elif [ "$1" = "import" ]; then
+import)
   process_start import &
   zip_file="$3"
 
@@ -250,12 +257,13 @@ elif [ "$1" = "import" ]; then
   fi
   wait
   process_end import
+;;
 
 # =================================================================================
 # Action: export
 # Detail: Pack your project or group ready to share
 #
-elif [ "$1" = "export" ]; then
+export)
   process_start export &
   if [ -e "$newproj_dir" ]; then
     for f in $(find $newproj_dir -type d -name "$(basename $OUT_DIR)"); do
@@ -271,12 +279,13 @@ elif [ "$1" = "export" ]; then
   fi
   wait
   process_end export
+;;
 
 # =================================================================================
 # Action: vsinit
 # Detail: Configure VSCode so that the software links to the correct path
 #
-elif [ "$1" = "vsinit" ]; then
+vsinit)
   # Create vscode folder
   mkdir -p $vsc_dir &
 
@@ -320,9 +329,10 @@ elif [ "$1" = "vsinit" ]; then
   mv $ccpp_file $vsc_dir/c_cpp_properties.json &
   mv $launch_file $vsc_dir/launch.json &
   mv $setting_file $vsc_dir/settings.json &
+;;
 
 # =================================================================================
-fi
+esac
 
 #---------------------------------------------------------------------------------#
 #                                   End of file                                   #

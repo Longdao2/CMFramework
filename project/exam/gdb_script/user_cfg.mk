@@ -11,7 +11,7 @@
 #                                    Settings                                     #
 #---------------------------------------------------------------------------------#
 
-# Your full name to show in the terminal and test report
+# Your full name to show in the test report
 USER_NAME := Long Dao Hai
 
 # Run with time out (seconds)
