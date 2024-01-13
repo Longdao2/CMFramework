@@ -31,7 +31,7 @@ extern "C" {
 
 /**
 * @brief Use for debugging purposes. Failed assertions will jump in here
-* @param [in] \c file \c func \c line
+* @param [in] \p file - \p func - \p line : Stores some information of failure
 */
 __attribute__((unused)) static inline void UT_IsFailure(const char file[], const char func[], int line)
 {
@@ -92,23 +92,24 @@ __attribute__((unused)) static inline void UT_IsFailure(const char file[], const
 
 
 /** -----------------------------------------------------------------------
->>>                               Build only
+>>>                          Used for compilation
 --------------------------------------------------------------------------- */
 
 #else /* #ifdef UTEST_SUPPORT */
 
-typedef void (*UT_FuncTest_t)(void);
+typedef void (* UT_FuncTest_t)(void);
 
 typedef struct
 {
     UT_FuncTest_t func;
     char * nameTest;
     char * brief;
-} UT_TestCase_t;
+}
+UT_TestCase_t;
 
 void UT_Init(void);
 void DU_Init(void);
-void UT_SetId(int id);
+void UT_SetId(unsigned int id);
 void UT_SetVar_Str(const char varname[], const char value[]);
 void UT_SetVar_Num(const char varname[], unsigned int value);
 void UT_AddFail(const char file[], const char func[], int line);
@@ -137,15 +138,15 @@ extern unsigned char __ut_test_checker;
 /* ======================================================================== */
 
 #define UT_DEF_E }; \
-    const unsigned int __ut_all_tests_size = sizeof(__ut_all_tests) / sizeof(__ut_all_tests[0]); \
-    unsigned char __ut_test_checker = 0; \
+    const unsigned int __ut_all_tests_size = sizeof(__ut_all_tests) / sizeof(__ut_all_tests[0U]); \
+    unsigned int __ut_test_checker = 0U; \
     \
     __attribute__((constructor)) void custom_startup(void) { \
         UT_Init(); \
         UT_SetVar_Num("all_test", __ut_all_tests_size); \
         \
-        for (unsigned int index_case = 0; index_case < __ut_all_tests_size; index_case++) { \
-            UT_SetId(index_case + 1); \
+        for (unsigned int index_case = 0U; index_case < __ut_all_tests_size; index_case++) { \
+            UT_SetId(index_case + 1U); \
             UT_SetVar_Str("name", __ut_all_tests[index_case].nameTest); \
             UT_SetBrief(__ut_all_tests[index_case].brief); \
         } \
@@ -155,7 +156,7 @@ extern unsigned char __ut_test_checker;
 
 #define UT_Assert(condition) \
     if (!(condition)) { \
-        __ut_test_checker = 0; \
+        __ut_test_checker = 0U; \
         UT_IsFailure(UT_ARGS_FILE_FUNC_LINE); \
     }
 
@@ -164,22 +165,22 @@ extern unsigned char __ut_test_checker;
 #define UT_RunTests() \
     DU_Init(); \
     \
-    for (unsigned int index_case = 0; index_case < __ut_all_tests_size; index_case++) { \
-        UT_SetId(index_case + 1); \
+    for (unsigned int index_case = 0U; index_case < __ut_all_tests_size; index_case++) { \
+        UT_SetId(index_case + 1U); \
         printf("\n< FuncTest(\033[0;34m%s\033[0m): %s\n", __ut_all_tests[index_case].nameTest, __ut_all_tests[index_case].brief); \
         \
         /* Run test and get status */ \
-        __ut_test_checker = 1; \
+        __ut_test_checker = 1U; \
         DU_Start(); \
         __ut_all_tests[index_case].func(); \
         DU_End(); \
         \
         /* Update status */ \
-        UT_SetVar_Num("status", (unsigned int)__ut_test_checker); \
+        UT_SetVar_Num("status", __ut_test_checker); \
         UT_SetVar_Num("duration", (unsigned int)DU_GetValue()); \
         \
         /* Display result */ \
-        if (1 == __ut_test_checker) { \
+        if (1U == __ut_test_checker) { \
             printf("\033[0;32m> PASS\033[0m\n"); \
         } \
         else { \
