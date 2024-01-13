@@ -3,7 +3,7 @@
 * @author   Long Dao [admin@louisvn.com]
 * @version  0.4
 * @date     2023-11-05
-* @brief    Extension for testing (build only)
+* @brief    Extension for testing (used for compilation)
 */
 
 /** -----------------------------------------------------------------------
@@ -16,7 +16,7 @@
 #include "utest.h"
 
 /** -----------------------------------------------------------------------
->>>                               Build only
+>>>                                Processes
 --------------------------------------------------------------------------- */
 
 #ifdef UTEST_SUPPORT
@@ -33,15 +33,15 @@
 
 static LARGE_INTEGER s_freq, s_start, s_end;
 static char *s_file = NULL;
-static int s_id = 0;
+static unsigned int s_id = 0U;
 
 void UT_Init(void)
 {
     time_t currentTime;
     struct tm *localTime;
-    char formattedTime[20];
+    char formattedTime[20U];
 
-    s_id = 0;
+    s_id = 0U;
     s_file = getenv("REPORT_RAW");
     currentTime = time(NULL);
     localTime = localtime(&currentTime);
@@ -58,7 +58,7 @@ void DU_Init(void)
     QueryPerformanceFrequency(&s_freq);
 }
 
-void UT_SetId(int id)
+void UT_SetId(unsigned int id)
 {
     s_id = id;
 }
@@ -66,7 +66,7 @@ void UT_SetId(int id)
 void UT_SetBrief(const char brief[])
 {
     UT_SET_START
-        fprintf(f, "%d.brief = %.*s\n", s_id, (int)strlen(brief) - 2, brief + 1);
+        fprintf(f, "%d.brief = %.*s\n", s_id, (int)strlen(brief) - 2U, brief + 1U);
     UT_SET_END
 }
 
@@ -93,17 +93,17 @@ void UT_AddFail(const char file[], const char func[], int line)
 
 void DU_Start(void)
 {
-    QueryPerformanceCounter( &s_start );
+    QueryPerformanceCounter(&s_start);
 }
 
 void DU_End(void)
 {
-    QueryPerformanceCounter( &s_end );
+    QueryPerformanceCounter(&s_end);
 }
 
 double DU_GetValue(void)
 {
-    return (( double )( s_end.QuadPart - s_start.QuadPart ) / s_freq.QuadPart ) * 1000000.0;
+    return ((double)(s_end.QuadPart - s_start.QuadPart) / s_freq.QuadPart) * 1000000.0;
 }
 
 #endif /* UTEST_SUPPORT */

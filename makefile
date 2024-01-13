@@ -177,7 +177,7 @@ endif # CC_PATH == ""
 #---------------------------------------------------------------------------------#
 
 # All rules
-  .PHONY: quick force setup info clean build run report vsinit list \
+  .PHONY: quick force setup info clean build run debug report vsinit list \
           move.% remove.% import.% export.% print.%
 
 # Extension rules (Please do not use them directly)
