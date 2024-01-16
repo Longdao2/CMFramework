@@ -4,7 +4,6 @@
 # About        https://louisvn.com                                                #
 # Version      1.0.6                                                              #
 # Release      11-10-2023                                                         #
-# Copyright    2023 (c) Belongs to Louisvn                                        #
 # Details      C/C++ project management tool - [SH] Make                          #
 #=================================================================================#
 
@@ -45,7 +44,7 @@ for (( i=0; i<$#; i++ ))
 if ! [ ${#proj_list[@]} = 0 ]; then
   for exclude_opt in $exclude_opts; do
     if [[ ${make_opts[@]} =~ (^|[[:space:]])$exclude_opt(\.|$|[[:space:]]) ]]; then
-      echo -e "\n\033[0;31mERROR: Options [[ move remove import export debug ]] cannot be used in the list of projects\033[0m\n";
+      echo -e "\n\033[0;31mERROR: Options [[ $exclude_opts ]] cannot be used in the list of projects\033[0m\n";
       exit 0
     fi
   done

@@ -120,7 +120,7 @@ double DU_GetValue(void);
 
 extern const UT_TestCase_t __ut_all_tests[];
 extern const unsigned int __ut_all_tests_size;
-extern unsigned char __ut_test_checker;
+extern unsigned int __ut_test_checker;
 
 /* ======================================================================== */
 
