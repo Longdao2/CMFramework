@@ -3,7 +3,6 @@
 # Author       ...                                                                #
 # Version      1.0.6                                                              #
 # Release      11-10-2023                                                         #
-# Copyright    2023 (c) Belongs to Louisvn                                        #
 # Details      Specific config for project                                        #
 #=================================================================================#
 

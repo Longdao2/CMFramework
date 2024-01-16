@@ -3,7 +3,6 @@
 # Author       Long Dao                                                           #
 # Version      1.0.6                                                              #
 # Release      11-10-2023                                                         #
-# Copyright    2023 (c) Belongs to Louisvn                                        #
 # Details      Specific config for project                                        #
 #=================================================================================#
 
@@ -15,7 +14,7 @@
 USER_NAME := Long Dao Hai
 
 # Run with time out (seconds)
-RUN_TIMEOUT := 2.0s
+RUN_TIMEOUT := 3.0s
 
 # Run with CCOV report (on/off)
 RUN_CCOV := off

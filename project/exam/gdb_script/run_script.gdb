@@ -3,7 +3,6 @@
 # Author       Long Dao                                                           #
 # Version      1.0.6                                                              #
 # Release      11-08-2023                                                         #
-# Copyright    2023 (c) Belongs to Louisvn                                        #
 # Details      Reset the state of INTERRUPT_STATE                                 #
 #=================================================================================#
 
