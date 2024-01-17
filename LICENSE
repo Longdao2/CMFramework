@@ -109,14 +109,13 @@ and between Louisvn ("Licensor") and the user of the CMFramework ("Licensee").
 IN WITNESS WHEREOF, the parties hereto have executed this License Agreement
 as of the Effective Date.
 
-Licensor:
-Organization: Louisvn
-Address: Ha Noi, VietNam
-Email: admin@louisvn.com
-Phone Number: +84 70 373 6886
+LICENSOR:                             LICENSEE:
+(A)                                   (B)
+Organization: Louisvn                 Organization: ...
+Address: Ha Noi, VietNam              Address: ...
+Email: admin@louisvn.com              Email: ...
+Phone Number: +84 70 373 6886         Phone Number: ...
 
-Licensee:
-[Licensee's Name or Organization]
-[Licensee's Address]
-[Licensee's Email]
-[Licensee's Phone Number]
+---
+
+THE END
