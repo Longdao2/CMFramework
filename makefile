@@ -78,7 +78,7 @@ endif
 
 # If the project directory is empty, should be "./path/to/project"
 ifeq ("$(wildcard $(PROJ_DIR)/user_cfg.mk)","")
-  SILENT := $(shell bash $(SHELL_DIR)/actions.sh move $(TEMP_NAME))
+  SILENT := $(shell $(SHELL) $(SHELL_DIR)/actions.sh move $(TEMP_NAME))
   $(error Project [$(PROJ_NAME)] has ceased to exist. So it was brought back to the template project)
 endif
 
@@ -193,7 +193,7 @@ ifneq ($(bypass),on)
   ifneq ($(filter quick build %.o $(PROJ_EXE) !w!0, $(MAKECMDGOALS) !w!$(words $(MAKECMDGOALS))),)
     -include $(PROJ_EXE:%.exe=%.d)
     SRC_DEPS := $(addprefix $(OUT_DIR)/,$(notdir $(shell echo "$(filter-out $(SRC_FILES), $(SRC_PREV))" | sed 's/\.[^.]*\(\s\|$$\)/.\* /g')))
-    SILENT := $(shell $(if $(SRC_DEPS), rm -rf $(SRC_DEPS) $(PROJ_EXE) & ) bash $(SHELL_DIR)/actions.sh depend_init)
+    SILENT := $(shell $(if $(SRC_DEPS), rm -rf $(SRC_DEPS) $(PROJ_EXE) & ) $(SHELL) $(SHELL_DIR)/actions.sh depend_init)
     -include $(OBJ_FILES:%.o=%.d)
   endif # MAKECMDGOALS
   $(info )

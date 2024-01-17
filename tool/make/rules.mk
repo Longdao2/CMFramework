@@ -62,7 +62,7 @@ info:
 # Details: Configure VSCode so that the software links to the correct path
 #
 clean run debug report vsinit:
-	@bash $(SHELL_DIR)/actions.sh $@
+	@$(SHELL) $(SHELL_DIR)/actions.sh $@
 
 # =================================================================================
 # Command: [make build]
@@ -85,7 +85,7 @@ _check_project:
 	@$(if $(filter $(PROJ_NAME),$(TEMP_NAME)), $(error Some features are limited on template project. Please create or move to another project))
 
 _check_depend:
-	@rm -f $(ERROR_FILE) & $(src_depend) & bash $(SHELL_DIR)/actions.sh depend_update
+	@rm -f $(ERROR_FILE) & $(src_depend) & $(SHELL) $(SHELL_DIR)/actions.sh depend_update
 
 # =================================================================================
 # Command: [make <src_name>.o]
@@ -113,28 +113,28 @@ list:
 # Details: Move to new project (automatically create if it doesn't exist)
 #
 $(filter move.%, $(MAKECMDGOALS)):
-	@bash $(SHELL_DIR)/actions.sh move $(call convert_path, move)
+	@$(SHELL) $(SHELL_DIR)/actions.sh move $(call convert_path, move)
 
 # =================================================================================
 # Command: [make remove.{project}/{group}]
 # Details: Remove an existing project or group
 #
 $(filter remove.%, $(MAKECMDGOALS)):
-	@bash $(SHELL_DIR)/actions.sh remove $(call convert_path, remove)
+	@$(SHELL) $(SHELL_DIR)/actions.sh remove $(call convert_path, remove)
 
 # =================================================================================
 # Command: [make import.{name} zip=<path/to/zip>
 # Details: Import a shared project or group from any CMFramework
 #
 $(filter import.%, $(MAKECMDGOALS)):
-	@bash $(SHELL_DIR)/actions.sh import $(call convert_path, import) $(subst \,/,$(zip))
+	@$(SHELL) $(SHELL_DIR)/actions.sh import $(call convert_path, import) $(subst \,/,$(zip))
 
 # =================================================================================
 # Command: [make export.{project}/{group}]
 # Details: Pack your project or group ready to share
 #
 $(filter export.%, $(MAKECMDGOALS)): | $(SHARE_DIR)
-	@bash $(SHELL_DIR)/actions.sh export $(call convert_path, export)
+	@$(SHELL) $(SHELL_DIR)/actions.sh export $(call convert_path, export)
 
 $(SHARE_DIR): ; @mkdir -p $@
 
