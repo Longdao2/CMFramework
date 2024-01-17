@@ -243,12 +243,12 @@
       window.open(pGcov, "_blank");
     }
 
-    function Add_Test(name,brief,duration,retsult,fail)
+    function Add_Test(name,brief,duration,result,fail)
     {
       var _duration = 0, status, id, id1 = "col3";
       vTotal = vTotal + 1;
 
-      if (retsult != "") {
+      if (result != "") {
         if (duration == "0") duration = "less than 1 us";
         else if (duration == "") duration = "--";
         else {
@@ -262,18 +262,19 @@
             duration = Math.round((_duration / 1000000) * 1000) / 1000 + " s"
         }
 
-        if (retsult == "0") {
+        if (result == "0") {
           vFail = vFail + 1;
           id = "fail";
           status = "Failed";
         }
-        else if (retsult == "1") {
+        else if (result == "1") {
           vPass = vPass + 1;
           id = "pass";
           status = "Success";
         }
       }
-      else /* if (retsult == "") */ {
+
+      else /* if (result == "") */ {
         vError = vError + 1;
         duration = "--";
         id = "error";
