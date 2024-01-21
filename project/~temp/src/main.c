@@ -1,8 +1,8 @@
 /**
 * @file     main.c
 * @author   ...
-* @version  0.1
-* @date     0000-00-00
+* @version  1.0.7
+* @date     01-20-2024
 * @brief    ...
 */
 
