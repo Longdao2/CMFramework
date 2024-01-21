@@ -2,8 +2,8 @@
 # File         make.sh                                                            #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.6                                                              #
-# Release      11-10-2023                                                         #
+# Version      1.0.7                                                              #
+# Release      01-20-2024                                                         #
 # Details      C/C++ project management tool - [SH] Make                          #
 #=================================================================================#
 
