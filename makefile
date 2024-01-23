@@ -111,8 +111,8 @@ endif # MAKECMDGOALS
 # Search all source files in the project
   OBJ_FILES := $(filter %.o, $(SRC_FILES))
   SRC_FILES := $(filter %.c %.C %.s %.S %.cc %.cpp, $(SRC_FILES))
-  SRC_FILES += $(foreach SRC_DIR, $(SRC_DIRS), $(wildcard $(SRC_DIR)/*.[cCsS] $(SRC_DIR)/*.cc $(SRC_DIR)/*.cpp))
   OBJ_FILES += $(foreach SRC_DIR, $(SRC_DIRS), $(wildcard $(SRC_DIR)/*.o))
+  SRC_FILES += $(foreach SRC_DIR, $(SRC_DIRS), $(wildcard $(SRC_DIR)/*.[cCsS] $(SRC_DIR)/*.cc $(SRC_DIR)/*.cpp))
   OBJ_AVAIL := $(strip $(OBJ_FILES))
 
   vpath %.c   $(sort $(dir $(SRC_FILES)))
