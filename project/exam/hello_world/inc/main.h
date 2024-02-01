@@ -1,8 +1,8 @@
 /**
 * @file     main.h
 * @author   Long Dao [https://louisvn.com]
-* @version  1.0.7
-* @date     01-20-2024
+* @version  1.0.8
+* @date     02-15-2024
 * @brief    Example: Basic program for beginners
 */
 
