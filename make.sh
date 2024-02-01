@@ -2,8 +2,8 @@
 # File         make.sh                                                            #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.7                                                              #
-# Release      01-20-2024                                                         #
+# Version      1.0.8                                                              #
+# Release      02-15-2024                                                         #
 # Details      C/C++ project management tool - [SH] Make                          #
 #=================================================================================#
 
@@ -44,7 +44,7 @@ for (( i=0; i<$#; i++ ))
 if ! [ ${#proj_list[@]} = 0 ]; then
   for exclude_opt in $exclude_opts; do
     if [[ ${make_opts[@]} =~ (^|[[:space:]])$exclude_opt(\.|$|[[:space:]]) ]]; then
-      echo -e "\n\033[0;31mERROR: Options [[ $exclude_opts ]] cannot be used in the list of projects\033[0m\n";
+      echo -e "\n\033[0;31mERROR: Options [[ $exclude_opts ]] cannot be used in the list of projects\033[0m\n"
       exit 0
     fi
   done

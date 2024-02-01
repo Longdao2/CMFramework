@@ -15,7 +15,8 @@
   "files.exclude":
   {
     "**/.git**": true,
-    "**/[[SED_TEMP_NAME]]": true,
-    ".vscode": true
+    "project/[[SED_TEMP_NAME]]": true,
+    ".vscode": true,
+    "tool/tmp": true
   }
 }

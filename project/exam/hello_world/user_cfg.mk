@@ -1,8 +1,8 @@
 #=================================================================================#
 # File         user_cfg.mk                                                        #
 # Author       Long Dao                                                           #
-# Version      1.0.7                                                              #
-# Release      01-20-2024                                                         #
+# Version      1.0.8                                                              #
+# Release      02-15-2024                                                         #
 # Details      Specific config for project                                        #
 #=================================================================================#
 
@@ -52,6 +52,9 @@ USER_DEFS :=
 # Run the program with the GDB script
 DB_SCRIPT := 
 
+# Add user environment variables
+USER_ENVS := 
+
 #---------------------------------------------------------------------------------#
 #                                   VSCode Debug                                  #
 #---------------------------------------------------------------------------------#
@@ -61,9 +64,6 @@ STOP_AT_ENTRY := true
 
 # Allows the interface to be displayed on an external console window (true/false)
 EXTERNAL_CONSOLE := false
-
-# Add user environment variables. The declared variables must also be exported
-USER_ENVS := REPORT_RAW USER_NAME PROJ_NAME
 
 #---------------------------------------------------------------------------------#
 #                                   End of file                                   #
