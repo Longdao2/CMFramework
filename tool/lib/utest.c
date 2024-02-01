@@ -1,6 +1,6 @@
 /**
 * @file     utest.c
-* @author   Long Dao [admin@louisvn.com]
+* @author   Long Dao [https://louisvn.com]
 * @version  1.0.7
 * @date     01-20-2024
 * @brief    Extension for testing (used for compilation)

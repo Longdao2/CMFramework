@@ -1,6 +1,6 @@
 /**
 * @file     utest.h
-* @author   Long Dao [admin@louisvn.com]
+* @author   Long Dao [https://louisvn.com]
 * @version  1.0.7
 * @date     01-20-2024
 * @brief    APIs to perform testing

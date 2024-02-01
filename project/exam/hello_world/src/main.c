@@ -1,6 +1,6 @@
 /**
 * @file     main.c
-* @author   Long Dao [admin@louisvn.com]
+* @author   Long Dao [https://louisvn.com]
 * @version  1.0.7
 * @date     01-20-2024
 * @brief    Example: Basic program for beginners
@@ -22,9 +22,9 @@
 /** -----------------------------------------------------------------------
 >>>                              Main function
 --------------------------------------------------------------------------- */
-int main( void )
+int main(void)
 {
-    printf( "Hello World!\n" );
+    printf("Hello World!\n");
 
     return 0;
 }
