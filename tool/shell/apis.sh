@@ -2,8 +2,8 @@
 # File         apis.sh                                                            #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.7                                                              #
-# Release      01-20-2024                                                         #
+# Version      1.0.8                                                              #
+# Release      02-15-2024                                                         #
 # Details      C/C++ project management tool - [SH] Apis                          #
 #=================================================================================#
 
@@ -18,11 +18,11 @@
 # Return : /None/
 #
 function process_start() {
-  $ECHO "$INVERT<<< Start $1 $RCOLOR\n"
+  $ECHO "$REVERSE<<< Start $1 $RCOLOR\n"
 }
 
 function process_end() {
-  $ECHO "$GRAY $INVERT"
+  $ECHO "$GRAY $REVERSE"
   date +">>> Finish $1 at "%H:%M:%S" on "%Y-%m-%d" "
   $ECHO "$RCOLOR"
 }

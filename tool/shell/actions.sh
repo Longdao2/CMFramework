@@ -2,8 +2,8 @@
 # File         actions.sh                                                         #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.7                                                              #
-# Release      01-20-2024                                                         #
+# Version      1.0.8                                                              #
+# Release      02-15-2024                                                         #
 # Details      C/C++ project management tool - [SH] Actions                       #
 #=================================================================================#
 
@@ -21,9 +21,9 @@ newproj_name="$2"
 newproj_dir="$BASE_DIR/$newproj_name"
 
 vsc_dir="$ROOT_DIR/.vscode"
-ccpp_file="$SHELL_DIR/tmp/tmp1"
-launch_file="$SHELL_DIR/tmp/tmp2"
-setting_file="$SHELL_DIR/tmp/tmp3"
+ccpp_file="$TOOL_DIR/tmp/tmp1"
+launch_file="$TOOL_DIR/tmp/tmp2"
+setting_file="$TOOL_DIR/tmp/tmp3"
 
 #---------------------------------------------------------------------------------#
 #                                     Process                                     #
@@ -94,8 +94,37 @@ depend_update)
 
   # Write to the log file information about the timestamp to begin a new build session
   if [ -e $OUT_DIR ]; then
-    (echo; echo; date +'========================= '%H:%M:%S' '%Y-%m-%d' ========================='; echo) >> $LOG_FILE &
+    (echo; echo; date +'========================= '%H:%M:%S' '%Y-%m-%d' ========================='; echo) >> $LOG_FILE
+    # Clear previous warnings and errors
+    sed -i 's/^\(\([a-z]:\/\|\)[^\\:*?"<>|]\+\.[a-z]\{1,3\}\(:[0-9]\+:[0-9]\+\|\)\):\( \(warning\|error\): \)/\1.\4/gi' $LOG_FILE &
   fi
+;;
+
+# =================================================================================
+# Action: check_build
+# Detail: Summary of errors and warnings during compilation
+#
+check_build)
+  warns=$(sed -n 's/^\(\([a-z]:\/\|\)[^\\:*?"<>|]\+\.[a-z]\{1,3\}\(:[0-9]\+:[0-9]\+\|\)\):\( warning: \)/&/pgi' $LOG_FILE | wc -l)
+  errors=$(sed -n 's/^\(\([a-z]:\/\|\)[^\\:*?"<>|]\+\.[a-z]\{1,3\}\(:[0-9]\+:[0-9]\+\|\)\):\( error: \)/&/pgi' $LOG_FILE | wc -l)
+  status=$GREEN"PASS"$RCOLOR
+  wc=""
+  ec=""
+
+  if [ "$warns" -gt 1 ]; then
+    wc="s"
+  fi
+
+  if [ "$errors" -gt 0 ]; then
+    status=$RED"FAIL"$RCOLOR
+    rm -f $OUT_DIR/*.exe $OUT_DIR/*.map &
+    if [ "$errors" -gt 1 ]; then
+      ec="s"
+    fi
+  fi
+
+  message_blue "Summary: $errors Error$ec. $warns Warning$wc. [$status] -> $LOG_FILE" &
+  echo -e "\n>> Summary: $errors Error$ec. $warns Warning$wc\n" >> $LOG_FILE &
 ;;
 
 # =================================================================================
@@ -269,7 +298,7 @@ export)
       message_red "Removing $f" & rm -rf $f &
     done
 
-    export_file=$SHARE_DIR/__${newproj_name//\//\~}.zip
+    export_file=$SHARE_DIR/~${newproj_name//\//\~}.zip
     message_green "Compressing to $export_file" &
     rm -f $export_file; cd "$newproj_dir"; zip -r $export_file ./*
 

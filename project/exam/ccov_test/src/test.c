@@ -1,8 +1,8 @@
 /**
 * @file     test.c
-* @author   Long Dao [admin@louisvn.com]
-* @version  1.0.7
-* @date     01-20-2024
+* @author   Long Dao [https://louisvn.com]
+* @version  1.0.8
+* @date     02-15-2024
 * @brief    Example: Run the tests and measure code coverage
 */
 

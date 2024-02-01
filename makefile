@@ -2,8 +2,8 @@
 # File         makefile                                                           #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.7                                                              #
-# Release      01-20-2024                                                         #
+# Version      1.0.8                                                              #
+# Release      02-15-2024                                                         #
 # Details      C/C++ project management tool - [MK] Main                          #
 #=================================================================================#
 
@@ -26,7 +26,7 @@
   GREEN        :=  \033[0;32m
   BLUE         :=  \033[0;34m
   GRAY         :=  \033[38;2;97;97;97m
-  INVERT       :=  \033[7m
+  REVERSE      :=  \033[7m
   RCOLOR       :=  \033[0m
 
 # Only to be used during the build process
@@ -45,27 +45,20 @@
   PROJ_DIR     :=  $(BASE_DIR)/$(PROJ_NAME)
   OUT_DIR      :=  $(PROJ_DIR)/out
   DOC_DIR      :=  $(PROJ_DIR)/doc
-  PROJ_RAW     :=  __$(subst /,~,$(PROJ_NAME))
+  PROJ_RAW     :=  ~$(subst /,~,$(PROJ_NAME))
   PROJ_EXE     :=  $(OUT_DIR)/$(PROJ_RAW).exe
   GCOVR_EXE    :=  gcovr
   START_EXE    :=  cygstart
 
 # Path to report files
   LOG_FILE     :=  $(OUT_DIR)/$(PROJ_RAW).log
-  ERROR_FILE   :=  $(OUT_DIR)/$(PROJ_RAW).err
   REPORT_RAW   :=  $(OUT_DIR)/$(PROJ_RAW).ret
   REPORT_HTML  :=  $(DOC_DIR)/$(PROJ_RAW).html
   CCOV_HTML    :=  $(DOC_DIR)/$(PROJ_RAW)_ccov.html
-  CHK_FILE     :=  $(SHELL_DIR)/tmp/$(PROJ_RAW)_chk.sh
-  CCD_FILE     :=  $(SHELL_DIR)/tmp/$(PROJ_RAW)_ccd.sh
-  ASD_FILE     :=  $(SHELL_DIR)/tmp/$(PROJ_RAW)_asd.sh
-  LDD_FILE     :=  $(SHELL_DIR)/tmp/$(PROJ_RAW)_ldd.sh
-
-#---------------------------------------------------------------------------------#
-#                                     Export                                      #
-#---------------------------------------------------------------------------------#
-
-  include $(TOOL_DIR)/make/export.mk
+  CHK_FILE     :=  $(TOOL_DIR)/tmp/$(PROJ_RAW).chk.sh
+  CCD_FILE     :=  $(TOOL_DIR)/tmp/$(PROJ_RAW).ccd.sh
+  ASD_FILE     :=  $(TOOL_DIR)/tmp/$(PROJ_RAW).asd.sh
+  LDD_FILE     :=  $(TOOL_DIR)/tmp/$(PROJ_RAW).ldd.sh
 
 #---------------------------------------------------------------------------------#
 #                                    Validate                                     #
@@ -94,6 +87,24 @@ endif # MAKECMDGOALS
 #---------------------------------------------------------------------------------#
 
   include $(PROJ_DIR)/user_cfg.mk
+
+#---------------------------------------------------------------------------------#
+#                                     Export                                      #
+#---------------------------------------------------------------------------------#
+
+  EXPS :=   RUN_TIMEOUT   VAR_ARGS    MAKE         ECHO          BLUE
+  EXPS +=   GREEN         RED         GRAY         REVERSE       RCOLOR
+  EXPS +=   PROJ_NAME     BASE_DIR    SHARE_DIR    TEMP_NAME     TEMP_DIR
+  EXPS +=   OUT_DIR       DOC_DIR     PROJ_RAW     PROJ_EXE      USER_NAME
+  EXPS +=   GCOVR_EXE     LOG_FILE    CHK_FILE     START_EXE     REPORT_HTML
+  EXPS +=   CCOV_HTML     CCD_FILE    LDD_FILE     ASD_FILE      ROOT_DIR
+  EXPS +=   LIST_CCD      LIST_LDD    LIST_ASD     DB_SCRIPT     DB_EXE
+  EXPS +=   DEV_DIR       INC_DIRS    SHELL_DIR    SHOW_REPORT   STOP_AT_ENTRY
+  EXPS +=   TOOL_DIR      USER_ENVS   REPORT_RAW   USER_DEFS     EXTERNAL_CONSOLE
+  EXPS +=   RUN_CCOV      bypass
+
+  EXPORT := $(shell mkdir -p $(TOOL_DIR)/tmp; echo "export $(sort $(EXPS) $(USER_ENVS))" > $(TOOL_DIR)/tmp/export.mk)
+  include $(TOOL_DIR)/tmp/export.mk
 
 #---------------------------------------------------------------------------------#
 #                                     Macros                                      #

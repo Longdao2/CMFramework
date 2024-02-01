@@ -63,4 +63,4 @@ project/*/doc/*.html
 project/*/doc/*.css
 project/*/*/doc/*.html
 project/*/*/doc/*.css
-tool/shell/tmp/
+tool/tmp/
