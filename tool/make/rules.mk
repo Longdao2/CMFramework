@@ -29,7 +29,7 @@ force: clean build run
 #
 setup:
 	@dos2unix -q $(SHELL_DIR)/* $(TOOL_DIR)/extend/* make.sh makefile & \
-	rm -rf $(SHELL_DIR)/tmp; mkdir -p $(SHELL_DIR)/tmp & $(MAKE) bypass=on vsinit
+	rm -rf $(TOOL_DIR)/tmp; mkdir -p $(TOOL_DIR)/tmp & $(MAKE) bypass=on vsinit
 
 # =================================================================================
 # Command: [make info]
@@ -69,10 +69,10 @@ clean run debug report vsinit:
 # Details: Compile all source files in the project and link into an executable
 #
 build: _s_build $(PROJ_EXE)
-	@$(if $(filter $(BUILD_VAL), 2), $(build_status); $(build_end)) $(eval BUILD_VAL := 0)
+	@$(if $(filter $(BUILD_VAL), 2), $(SHELL) $(SHELL_DIR)/actions.sh check_build; $(build_end)) $(eval BUILD_VAL := 0)
 
 $(PROJ_EXE): $(OBJ_FILES) | $(BUILD_CHECK)
-	@$(build_start) $(call message_blue, Linking to $(PROJ_EXE)) & \
+	@$(build_start) $(call message_green, Linking to $(PROJ_EXE)) & \
 	$(call build_cmd, $(LD_EXE) $(LDOPTS) $(CCOV_LD) $(OBJ_FILES) -o $@)
 
 $(OUT_DIR):
@@ -85,7 +85,7 @@ _check_project:
 	@$(if $(filter $(PROJ_NAME),$(TEMP_NAME)), $(error Some features are limited on template project. Please create or move to another project))
 
 _check_depend:
-	@rm -f $(ERROR_FILE) & $(src_depend) & $(SHELL) $(SHELL_DIR)/actions.sh depend_update
+	@$(src_depend) & $(SHELL) $(SHELL_DIR)/actions.sh depend_update
 
 # =================================================================================
 # Command: [make <src_name>.o]

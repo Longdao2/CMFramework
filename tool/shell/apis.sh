@@ -18,11 +18,11 @@
 # Return : /None/
 #
 function process_start() {
-  $ECHO "$INVERT<<< Start $1 $RCOLOR\n"
+  $ECHO "$REVERSE<<< Start $1 $RCOLOR\n"
 }
 
 function process_end() {
-  $ECHO "$GRAY $INVERT"
+  $ECHO "$GRAY $REVERSE"
   date +">>> Finish $1 at "%H:%M:%S" on "%Y-%m-%d" "
   $ECHO "$RCOLOR"
 }

@@ -11,9 +11,9 @@
 #                                      Macros                                     #
 #---------------------------------------------------------------------------------#
 
-process_start  =  $(ECHO) "$(INVERT)<<< Start $(strip $(1)) $(RCOLOR)"
+process_start  =  $(ECHO) "$(REVERSE)<<< Start $(strip $(1)) $(RCOLOR)"
 
-process_end    =  $(ECHO) -n "$(GRAY)$(INVERT)"; \
+process_end    =  $(ECHO) -n "$(GRAY)$(REVERSE)"; \
                   date +'>>> Finish $(strip $(1)) at '%H:%M:%S' on '%Y-%m-%d' '; $(ECHO) "$(RCOLOR)"
 
 message_error  =  $(ECHO) "$(RED)~ ERROR: $(strip $(1)) $(RCOLOR)"
@@ -31,15 +31,12 @@ build_start    =  $(build_tmp)
 build_end      =  echo; $(call process_end, build) $(eval build_start = $(build_tmp))
 
 build_cmd      =  (echo; echo "$(subst ",\",$(subst \,\\,$(subst \\,\\\,$(strip $(1)))))"; echo) >> $(LOG_FILE) & \
-                  log=$$($(subst \\,\\\,$(1)) 2>&1 || touch $(ERROR_FILE)); \
-                  if ! [ -z "$$log" ]; then (echo WARN; echo "$$log"; echo) | tee -a $(LOG_FILE); fi
+                  log=$$($(subst \\,\\\,$(1)) 2>&1); \
+                  if ! [ -z "$$log" ]; then (echo INFO; echo "$$log"; echo) | tee -a $(LOG_FILE); fi
 
 build_process  =  $(build_start) $(call message_green, Compiling from $<) & \
                   $(call build_cmd ,$(1) -c $($(strip $(2))) $(MASK_INC_DIRS) -MMD -MP -MF $(@:%.o=%.d) \
                   $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g) $(if $(filter CCOPTS>$(DEV_DIR)/%,$(2)>$(dir $<)),$(CCOV_CC)) $< -o $@)
-
-build_status   =  $(call message_blue, Status: [$$([ -e $(ERROR_FILE) ] && ($(ECHO) "$(RED)FAIL$(RCOLOR)" & rm -f $(OUT_DIR)/*.exe $(OUT_DIR)/*.map) || \
-                  $(ECHO) "$(GREEN)PASS$(RCOLOR)")] -> $(LOG_FILE))
 
 convert_path   =  $(subst \,/,$(patsubst $(strip $(1)).%,%,$@))
 
