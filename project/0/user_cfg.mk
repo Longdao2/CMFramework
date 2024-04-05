@@ -1,8 +1,8 @@
 #=================================================================================#
 # File         user_cfg.mk                                                        #
 # Author       ...                                                                #
-# Version      1.0.8                                                              #
-# Release      02-15-2024                                                         #
+# Version      1.0.9                                                              #
+# Release      04-10-2024                                                         #
 # Details      Specific config for project                                        #
 #=================================================================================#
 
@@ -46,8 +46,9 @@ CCOPTS := -Og -Wall -Wextra -Wwrite-strings -Wshadow=local -pedantic -fmessage-l
 ASOPTS := -Og -Wall
 LDOPTS := -Wl,-Map=$(OUT_DIR)/$(PROJ_RAW).map
 
-# [-D] User definitions. Will also be applied to the VSCode interface
-USER_DEFS := 
+# User definitions. Will also be applied to the VSCode interface
+CCDEFS := 
+ASDEFS := 
 
 # Run the program with the GDB script
 DB_SCRIPT := 

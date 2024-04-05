@@ -1,17 +1,12 @@
+#!/bin/bash
 #=================================================================================#
 # File         actions.sh                                                         #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.8                                                              #
-# Release      02-15-2024                                                         #
+# Version      1.0.9                                                              #
+# Release      04-10-2024                                                         #
 # Details      C/C++ project management tool - [SH] Actions                       #
 #=================================================================================#
-
-#---------------------------------------------------------------------------------#
-#                                    Includes                                     #
-#---------------------------------------------------------------------------------#
-
-source $SHELL_DIR/apis.sh
 
 #---------------------------------------------------------------------------------#
 #                                   Definitions                                   #
@@ -20,10 +15,16 @@ source $SHELL_DIR/apis.sh
 newproj_name="$2"
 newproj_dir="$BASE_DIR/$newproj_name"
 
-vsc_dir="$ROOT_DIR/.vscode"
-ccpp_file="$TOOL_DIR/tmp/tmp1"
-launch_file="$TOOL_DIR/tmp/tmp2"
-setting_file="$TOOL_DIR/tmp/tmp3"
+vsc_dir=$ROOT_DIR/.vscode
+ccpp_file=$TOOL_DIR/tmp/tmp1
+launch_file=$TOOL_DIR/tmp/tmp2
+setting_file=$TOOL_DIR/tmp/tmp3
+
+#---------------------------------------------------------------------------------#
+#                                    Includes                                     #
+#---------------------------------------------------------------------------------#
+
+source $SHELL_DIR/apis.sh
 
 #---------------------------------------------------------------------------------#
 #                                     Process                                     #
@@ -60,17 +61,17 @@ clean)
 # Detail: Check for changes in the dependency list
 #
 depend_init)
-  if [ -f $CCD_FILE ]; then source $CCD_FILE; else CCD_DATA=""; fi
-  if [ -f $ASD_FILE ]; then source $ASD_FILE; else ASD_DATA=""; fi
-  if [ -f $LDD_FILE ]; then source $LDD_FILE; else LDD_DATA=""; fi
+  if [ -f $CCD_FILE ]; then CCD_DATA=`cat $CCD_FILE`; else CCD_DATA=""; fi
+  if [ -f $ASD_FILE ]; then ASD_DATA=`cat $ASD_FILE`; else ASD_DATA=""; fi
+  if [ -f $LDD_FILE ]; then LDD_DATA=`cat $LDD_FILE`; else LDD_DATA=""; fi
 
-  check=
+  check=""
 
   if ! [ "$CCD_DATA" = "$LIST_CCD" ]; then rm -f $OUT_DIR/*.c.* $OUT_DIR/*.C.* $OUT_DIR/*.cc.* $OUT_DIR/*.cpp.* & check+=a; fi
   if ! [ "$ASD_DATA" = "$LIST_ASD" ]; then rm -f $OUT_DIR/*.s.* $OUT_DIR/*.S.* & check+=b; fi
   if ! [ "$LDD_DATA" = "$LIST_LDD" ]; then rm -f $OUT_DIR/*.exe $OUT_DIR/*.map & check+=c; fi
 
-  echo "check=$check" > $CHK_FILE &
+  echo -n "$check" > $CHK_FILE &
 ;;
 
 # =================================================================================
@@ -78,18 +79,18 @@ depend_init)
 # Detail: Update the dependency list if it was changed previously
 #
 depend_update)
-  if [ -f $CHK_FILE ]; then source $CHK_FILE; else check=abc; fi
+  if [ -f $CHK_FILE ]; then check=`cat $CHK_FILE`; else check=abc; fi
 
   if [[ $check =~ a ]]; then
-    echo "CCD_DATA='"$LIST_CCD"'" > $CCD_FILE &
+    echo -n "$LIST_CCD" > $CCD_FILE &
   fi
 
   if [[ $check =~ b ]]; then
-    echo "ASD_DATA='"$LIST_ASD"'" > $ASD_FILE &
+    echo -n "$LIST_ASD" > $ASD_FILE &
   fi
 
   if [[ $check =~ c ]]; then
-    echo "LDD_DATA='"$LIST_LDD"'" > $LDD_FILE &
+    echo -n "$LIST_LDD" > $LDD_FILE &
   fi
 
   # Write to the log file information about the timestamp to begin a new build session
@@ -160,7 +161,7 @@ debug)
   process_start debug & rm -f $OUT_DIR/*.gcda &
 
   if [ -e $PROJ_EXE ]; then
-    $DB_EXE -q -ex "set args $VAR_ARGS" $PROJ_EXE || :
+    $DB_EXE -q -ex "set args ${VAR_ARGS//\\\\/\\}" $PROJ_EXE || :
   else
     message_error "[$PROJ_EXE] does not exist"
   fi
@@ -216,25 +217,27 @@ report)
 #
 move)
   process_start move
-  if [ -e "$newproj_dir" ]; then
-    if [ -e "$newproj_dir/user_cfg.mk" ]; then
-      if [ "$PROJ_NAME" = "$newproj_name" ]; then
-        message_green "You are here!" &
+  if check_projname; then
+    if [ -e "$newproj_dir" ]; then
+      if [ -e "$newproj_dir/user_cfg.mk" ]; then
+        if [ "$PROJ_NAME" = "$newproj_name" ]; then
+          message_green "You are here!" &
+        else
+          move_project "$PROJ_NAME" "$newproj_name" &
+        fi
       else
+        message_error "[$newproj_name] is a group of projects!" &
+      fi
+
+    else
+      if user_responseTF "The [$newproj_name] project does not exist. Do you want to create it?"; then
+        message_blue "Cloning $newproj_dir" & mkdir -p $newproj_dir & rm -rf $TEMP_DIR/out &
+        cp -Rf $TEMP_DIR/* $newproj_dir &
         move_project "$PROJ_NAME" "$newproj_name" &
       fi
-    else
-      message_error "[$newproj_name] is a group of projects!" &
     fi
-
-  else
-    if user_response "The [$newproj_name] project does not exist. Do you want to create it?" y; then
-      message_blue "Cloning $newproj_dir" & mkdir -p $newproj_dir & rm -rf $TEMP_DIR/out &
-      cp -Rf $TEMP_DIR/* $newproj_dir &
-      move_project "$PROJ_NAME" "$newproj_name" &
-    fi
+    wait
   fi
-  wait
   process_end move
 ;;
 
@@ -244,22 +247,24 @@ move)
 #
 remove)
   process_start remove
-  if [ -e "$newproj_dir" ]; then
-    if [ "$newproj_name" = "$TEMP_NAME" ]; then
-      message_error "Cannot remove template [$TEMP_NAME] project" &
+  if check_projname; then
+    if [ -e "$newproj_dir" ]; then
+      if [ "$newproj_name" = "$TEMP_NAME" ]; then
+        message_error "Cannot remove template [$TEMP_NAME] project" &
 
-    elif user_response "Do you agree to remove this project or group ($newproj_name)?" y; then
-      message_red "Removing $newproj_dir" &
-      rm -r -f $newproj_dir/*; rmdir -p --ignore-fail-on-non-empty $newproj_dir &
-      if [[ $PROJ_NAME =~ ^$newproj_name.*$ ]]; then
-        move_project "$PROJ_NAME" "$TEMP_NAME" &
+      elif user_responseTF "Do you agree to remove this project or group ($newproj_name)?"; then
+        message_red "Removing $newproj_dir" &
+        rm -r -f $newproj_dir/*; rmdir -p --ignore-fail-on-non-empty $newproj_dir &
+        if [[ $PROJ_NAME =~ ^$newproj_name.*$ ]]; then
+          move_project "$PROJ_NAME" "$TEMP_NAME" &
+        fi
       fi
-    fi
 
-  else
-    message_error "The [$newproj_name] project or group does not exist" &
+    else
+      message_error "The [$newproj_name] project or group does not exist" &
+    fi
+    wait
   fi
-  wait
   process_end remove
 ;;
 
@@ -268,22 +273,24 @@ remove)
 # Detail: Import a shared project or group from any CMFramework
 #
 import)
-  process_start import &
   zip_file="$3"
 
-  if [[ "$zip_file" == *.zip ]] && ls $zip_file 1>/dev/null 2>&1; then
-    if [ -e "$newproj_dir" ]; then
-      message_error "The [$newproj_name] project or group already exist" &
-    else
-      message_green "Importing into [$newproj_dir]" &
-      mkdir -p $newproj_dir &
-      unzip $zip_file -d $newproj_dir &
-    fi
+  process_start import &
+  if check_projname; then
+    if [[ "$zip_file" == *.zip ]] && ls "$zip_file" 1>/dev/null 2>&1; then
+      if [ -e "$newproj_dir" ]; then
+        message_error "The [$newproj_name] project or group already exist" &
+      else
+        message_green "Importing into [$newproj_dir]" &
+        mkdir -p $newproj_dir &
+        unzip "$zip_file" -d $newproj_dir &
+      fi
 
-  else
-    message_error "Zip file does not exist or incorrect format" &
+    else
+      message_error "Zip file does not exist or incorrect format" &
+    fi
+    wait
   fi
-  wait
   process_end import
 ;;
 
@@ -293,19 +300,21 @@ import)
 #
 export)
   process_start export &
-  if [ -e "$newproj_dir" ]; then
-    for f in $(find $newproj_dir -type d -name "$(basename $OUT_DIR)"); do
-      message_red "Removing $f" & rm -rf $f &
-    done
+  if check_projname; then
+    if [ -e "$newproj_dir" ]; then
+      for f in $(find $newproj_dir -type d -name "$(basename $OUT_DIR)"); do
+        message_red "Removing $f" & rm -rf $f &
+      done
 
-    export_file=$SHARE_DIR/~${newproj_name//\//\~}.zip
-    message_green "Compressing to $export_file" &
-    rm -f $export_file; cd "$newproj_dir"; zip -r $export_file ./*
+      export_file=$SHARE_DIR/~${newproj_name//\//\~}.zip
+      message_green "Compressing to $export_file" &
+      rm -f $export_file; cd "$newproj_dir"; zip -r $export_file ./*
 
-  else
-    message_error "The [$newproj_name] project or group does not exist" &
+    else
+      message_error "The [$newproj_name] project or group does not exist" &
+    fi
+    wait
   fi
-  wait
   process_end export
 ;;
 
@@ -314,6 +323,8 @@ export)
 # Detail: Configure VSCode so that the software links to the correct path
 #
 vsinit)
+  tab="  ""  ""  ""  "
+
   # Create vscode folder
   mkdir -p $vsc_dir &
 
@@ -329,13 +340,17 @@ vsinit)
   # Configuration for c_cpp_properties.json
   __inc_dirs=""
   for item in $INC_DIRS; do
-    __inc_dirs+='\n        "'$item'",'
+    __inc_dirs+="\n$tab\"$item\","
   done
 
   __user_defs=""
-  eval "array=(${USER_DEFS//\\\\/\\\\\\})"
-  for item in "${array[@]}"; do
-    __user_defs+='\n        "'"$(echo $item | sed 's/^\s*\-D\s*//g; s|\\|\\\\\\\\|g; s|"|\\\\\\"|g; s|\||\\\||g')"'",'
+  for item in $USER_DEFS; do
+    __item="DEF_$item"
+    if [ "${!__item}" = "" ]; then
+      __user_defs+="\n$tab\"$item\","
+    else
+      __user_defs+="\n$tab\"$item=$(echo "${!__item}" | sed 's|\\|\\\\\\\\|g; s|"|\\\\"|g; s|\||\\\||g')\","
+    fi
   done
   sed -i "s|\[\[SED_INC_DIRS\]\]|$__inc_dirs|g; s|\[\[SED_USER_DEFS\]\]|$__user_defs|g" "$ccpp_file" &
 
@@ -343,12 +358,12 @@ vsinit)
   __var_args=""
   eval "array=(${VAR_ARGS//\\\\/\\\\\\\\})"
   for item in "${array[@]}"; do
-    __var_args+='\n        "'"$(echo $item | sed 's|\\|\\\\\\\\|g; s|"|\\\\\\\\\\\\\\\\\\\\"|g; s|\||\\\||g')"'",'
+    __var_args+="\n$tab\"$(echo $item | sed 's|\\|\\\\\\\\|g; s|\\\\\\\\\\\\\\\\|\\\\\\\\|g; s|"|\\\\\\\\\\\\\\\\\\\\"|g; s|\||\\\||g')\",'"
   done
 
   __user_envs=""
   for item in $USER_ENVS; do
-    __user_envs+='\n        { "name": "'$item'", "value": "'"$(echo ${!item} | sed 's|\\|\\\\\\\\|g; s|"|\\\\"|g; s|\||\\\||g')"'" },'
+    __user_envs+="\n$tab{ \"name\": \"$item\", \"value\": \"$(echo ${!item} | sed 's|\\|\\\\\\\\|g; s|"|\\\\"|g; s|\||\\\||g')\" },"
   done
   sed -i "s|\[\[SED_PROJ_EXE\]\]|$PROJ_EXE|g; s|\[\[SED_VAR_ARGS\]\]|$__var_args|g; s|\[\[SED_STOP_ENTRY\]\]|$STOP_AT_ENTRY|g; s|\[\[SED_USER_ENVS\]\]|$__user_envs|g; s|\[\[SED_EXT_CONSOLE\]\]|$EXTERNAL_CONSOLE|g" "$launch_file" &
   wait

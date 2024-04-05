@@ -2,8 +2,8 @@
 # File         macros.mk                                                          #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.8                                                              #
-# Release      02-15-2024                                                         #
+# Version      1.0.9                                                              #
+# Release      04-10-2024                                                         #
 # Details      C/C++ project management tool - [MK] Macros                        #
 #=================================================================================#
 
@@ -15,6 +15,8 @@ process_start  =  $(ECHO) "$(REVERSE)<<< Start $(strip $(1)) $(RCOLOR)"
 
 process_end    =  $(ECHO) -n "$(GRAY)$(REVERSE)"; \
                   date +'>>> Finish $(strip $(1)) at '%H:%M:%S' on '%Y-%m-%d' '; $(ECHO) "$(RCOLOR)"
+
+usr_define     =  $(eval DEF := $(strip $(1)))-D$(DEF)$(if $(DEF_$(DEF)),="$(subst ",\",$(subst \,\\,$(DEF_$(DEF))))")
 
 message_error  =  $(ECHO) "$(RED)~ ERROR: $(strip $(1)) $(RCOLOR)"
 
@@ -30,15 +32,14 @@ build_start    =  $(build_tmp)
 
 build_end      =  echo; $(call process_end, build) $(eval build_start = $(build_tmp))
 
-build_cmd      =  (echo; echo "$(subst ",\",$(subst \,\\,$(subst \\,\\\,$(strip $(1)))))"; echo) >> $(LOG_FILE) & \
-                  log=$$($(subst \\,\\\,$(1)) 2>&1); \
+build_cmd      =  (echo; echo "$(subst ",\",$(subst \,\\,$(strip $(1))))"; echo) >> $(LOG_FILE) & log=$$($(strip $(1)) 2>&1); \
                   if ! [ -z "$$log" ]; then (echo INFO; echo "$$log"; echo) | tee -a $(LOG_FILE); fi
 
 build_process  =  $(build_start) $(call message_green, Compiling from $<) & \
                   $(call build_cmd ,$(1) -c $($(strip $(2))) $(MASK_INC_DIRS) -MMD -MP -MF $(@:%.o=%.d) \
-                  $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g) $(if $(filter CCOPTS>$(DEV_DIR)/%,$(2)>$(dir $<)),$(CCOV_CC)) $< -o $@)
+                  $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g) $(if $(filter CCOPTS>$(DEV_DIR)/%,$(2)>$<),$(CCOV_CC)) $< -o $@)
 
-convert_path   =  $(subst \,/,$(patsubst $(strip $(1)).%,%,$@))
+convert_path   =  "$(subst \,/,$(patsubst $(strip $(1)).%,%,$@))"
 
 #---------------------------------------------------------------------------------#
 #                                   End of file                                   #
