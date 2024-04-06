@@ -2,8 +2,8 @@
 # File         makefile                                                           #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.8                                                              #
-# Release      02-15-2024                                                         #
+# Version      1.0.9                                                              #
+# Release      04-10-2024                                                         #
 # Details      C/C++ project management tool - [MK] Main                          #
 #=================================================================================#
 
@@ -12,10 +12,10 @@
 #---------------------------------------------------------------------------------#
 
 # Path to your project (start at BASE_DIR)
-  PROJ_NAME := exam/hello_world
+  PROJ_NAME := 0
 
 # Set bash as default console to run commands
-  SHELL = bash
+  SHELL := bash
 
 # Used to perform an action with a recursive target
   MAKE := make --silent
@@ -32,15 +32,16 @@
 # Only to be used during the build process
   BUILD_VAL    := 0
   SRC_PREV     :=
+  CC_PATH      :=
 
 # Base paths (start at Framework folder)
-  ROOT_DIR     :=  $(shell pwd | sed -e 's/^\(\/cygdrive\)*\/\(.\)/\2:/')
+  ROOT_DIR     :=  $(shell [[ "$$OSTYPE" =~ ^(cygwin|msys)$$ ]] && cygpath -m `pwd` || pwd)
   BASE_DIR     :=  $(ROOT_DIR)/project
   TOOL_DIR     :=  $(ROOT_DIR)/tool
   SHELL_DIR    :=  $(ROOT_DIR)/tool/shell
   SHARE_DIR    :=  $(ROOT_DIR)/share
 
-  TEMP_NAME    :=  ~temp
+  TEMP_NAME    :=  0
   TEMP_DIR     :=  $(BASE_DIR)/$(TEMP_NAME)
   PROJ_DIR     :=  $(BASE_DIR)/$(PROJ_NAME)
   OUT_DIR      :=  $(PROJ_DIR)/out
@@ -55,10 +56,10 @@
   REPORT_RAW   :=  $(OUT_DIR)/$(PROJ_RAW).ret
   REPORT_HTML  :=  $(DOC_DIR)/$(PROJ_RAW).html
   CCOV_HTML    :=  $(DOC_DIR)/$(PROJ_RAW)_ccov.html
-  CHK_FILE     :=  $(TOOL_DIR)/tmp/$(PROJ_RAW).chk.sh
-  CCD_FILE     :=  $(TOOL_DIR)/tmp/$(PROJ_RAW).ccd.sh
-  ASD_FILE     :=  $(TOOL_DIR)/tmp/$(PROJ_RAW).asd.sh
-  LDD_FILE     :=  $(TOOL_DIR)/tmp/$(PROJ_RAW).ldd.sh
+  CHK_FILE     :=  $(TOOL_DIR)/tmp/$(PROJ_RAW)~chk
+  CCD_FILE     :=  $(TOOL_DIR)/tmp/$(PROJ_RAW)~ccd
+  ASD_FILE     :=  $(TOOL_DIR)/tmp/$(PROJ_RAW)~asd
+  LDD_FILE     :=  $(TOOL_DIR)/tmp/$(PROJ_RAW)~ldd
 
 #---------------------------------------------------------------------------------#
 #                                    Validate                                     #
@@ -82,6 +83,14 @@ ifneq ($(filter move.% remove.% import.% export.%, $(MAKECMDGOALS)),)
   endif # MAKECMDGOALS
 endif # MAKECMDGOALS
 
+# Some features are limited on the template project
+ifeq ($(PROJ_NAME), $(TEMP_NAME))
+  override EXC_MAKECMDGOALS := quick force build run debug report %.o $(PROJ_EXE) $(OUT_DIR)
+  ifneq ($(filter $(EXC_MAKECMDGOALS) !w!0, $(MAKECMDGOALS) !w!$(words $(MAKECMDGOALS))),)
+    $(error Some features are limited on template project. Please create or move to another project)
+  endif
+endif # PROJ_NAME == TEMP_NAME
+
 #---------------------------------------------------------------------------------#
 #                                      User                                       #
 #---------------------------------------------------------------------------------#
@@ -92,19 +101,13 @@ endif # MAKECMDGOALS
 #                                     Export                                      #
 #---------------------------------------------------------------------------------#
 
-  EXPS :=   RUN_TIMEOUT   VAR_ARGS    MAKE         ECHO          BLUE
-  EXPS +=   GREEN         RED         GRAY         REVERSE       RCOLOR
-  EXPS +=   PROJ_NAME     BASE_DIR    SHARE_DIR    TEMP_NAME     TEMP_DIR
-  EXPS +=   OUT_DIR       DOC_DIR     PROJ_RAW     PROJ_EXE      USER_NAME
-  EXPS +=   GCOVR_EXE     LOG_FILE    CHK_FILE     START_EXE     REPORT_HTML
-  EXPS +=   CCOV_HTML     CCD_FILE    LDD_FILE     ASD_FILE      ROOT_DIR
-  EXPS +=   LIST_CCD      LIST_LDD    LIST_ASD     DB_SCRIPT     DB_EXE
-  EXPS +=   DEV_DIR       INC_DIRS    SHELL_DIR    SHOW_REPORT   STOP_AT_ENTRY
-  EXPS +=   TOOL_DIR      USER_ENVS   REPORT_RAW   USER_DEFS     EXTERNAL_CONSOLE
-  EXPS +=   RUN_CCOV      bypass
+  include $(TOOL_DIR)/make/export.mk
 
-  EXPORT := $(shell mkdir -p $(TOOL_DIR)/tmp; echo "export $(sort $(EXPS) $(USER_ENVS))" > $(TOOL_DIR)/tmp/export.mk)
-  include $(TOOL_DIR)/tmp/export.mk
+  USER_DEFS := $(sort $(CCDEFS) $(ASDEFS))
+  USER_ENVS := $(sort $(USER_ENVS) REPORT_RAW USER_NAME PROJ_NAME)
+  EXPS := $(sort $(EXP) $(USER_ENVS) $(addprefix DEF,$(USER_DEFS)))
+
+  export $(EXPS)
 
 #---------------------------------------------------------------------------------#
 #                                     Macros                                      #
@@ -124,7 +127,7 @@ endif # MAKECMDGOALS
   SRC_FILES := $(filter %.c %.C %.s %.S %.cc %.cpp, $(SRC_FILES))
   OBJ_FILES += $(foreach SRC_DIR, $(SRC_DIRS), $(wildcard $(SRC_DIR)/*.o))
   SRC_FILES += $(foreach SRC_DIR, $(SRC_DIRS), $(wildcard $(SRC_DIR)/*.[cCsS] $(SRC_DIR)/*.cc $(SRC_DIR)/*.cpp))
-  OBJ_AVAIL := $(strip $(OBJ_FILES))
+  OBJ_AVAIS := $(strip $(OBJ_FILES))
 
   vpath %.c   $(sort $(dir $(SRC_FILES)))
   vpath %.C   $(sort $(dir $(SRC_FILES)))
@@ -143,19 +146,28 @@ ifneq ($(bypass),on)
   ifneq ($(OBJ_DUPES),)
     $(info Some object file names have been detected to duplicated after analysis) $(info ---)
     $(foreach OBJ_DUPE, $(OBJ_DUPES), $(info $(OBJ_DUPE))) $(info ---)
-    $(error Please check all source files [make bypass=on print.SRC_FILES.OBJ_AVAIL])
+    $(error Please check all source files [make bypass=on print.SRC_FILES.OBJ_AVAIS])
   endif # OBJ_DUPES != ""
 endif # bypass != on
 
 # Add prefix to the directory containing the header file
   MASK_INC_DIRS := $(addprefix -I,$(INC_DIRS))
 
-# Add user definitions
-  CCOPTS += $(USER_DEFS)
-  ASOPTS += $(USER_DEFS)
-
 # Definitions for testing
-  CCOPTS += -DUTEST_SUPPORT -DRUN_CCOV=$(if $(filter $(RUN_CCOV),on),1,0)
+  DEF_RUN_CCOV := $(if $(filter $(RUN_CCOV),on),1,0)
+  CCDEFS += RUN_CCOV
+  CCOPTS += -DUTEST_SUPPORT
+
+# Add user definitions
+  CCOPTS += $(foreach USER_DEF, $(CCDEFS), $(call usr_define, $(USER_DEF)))
+  ASOPTS += $(foreach USER_DEF, $(ASDEFS), $(call usr_define, $(USER_DEF)))
+
+ifneq ($(bypass),on)
+  ifneq ($(words $(CCDEFS) UTEST_SUPPORT) $(words $(ASDEFS)), $(words $(sort $(CCDEFS) UTEST_SUPPORT)) $(words $(sort $(ASDEFS))))
+    $(warning Some duplicate user definitions were detected)
+    $(error Please check all -D flags in the compiler options [make bypass=on print.CCOPTS.ASOPTS])
+  endif
+endif # bypass != on
 
 # Definitions for the code coverage feature
 ifeq ($(RUN_CCOV), on)
@@ -166,7 +178,7 @@ endif # RUN_CCOV == on
 # List of dependencies to re-compile and re-link
   LIST_CCD := $(strip $(CCOPTS) $(CCOV_CC))
   LIST_ASD := $(strip $(ASOPTS))
-  LIST_LDD := $(strip $(LDOPTS) $(CCOV_LD) $(OBJ_AVAIL))
+  LIST_LDD := $(strip $(LDOPTS) $(CCOV_LD) $(OBJ_AVAIS))
 
 # Config for each programming language
 ifeq ($(CC_PATH),) # Default
@@ -191,9 +203,9 @@ endif # CC_PATH == ""
           move.% remove.% import.% export.% print.%
 
 # Extension rules (Please do not use them directly)
-  .PHONY: _all _s_build _check_project _check_depend
+  .PHONY: _s_build _check_depend
 
-  BUILD_CHECK := _check_project $(OUT_DIR) _check_depend
+  BUILD_CHECK := $(OUT_DIR) _check_depend
   include $(TOOL_DIR)/make/rules.mk
 
 #---------------------------------------------------------------------------------#
