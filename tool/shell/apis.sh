@@ -1,9 +1,10 @@
+#!/bin/bash
 #=================================================================================#
 # File         apis.sh                                                            #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.8                                                              #
-# Release      02-15-2024                                                         #
+# Version      1.0.9                                                              #
+# Release      04-10-2024                                                         #
 # Details      C/C++ project management tool - [SH] Apis                          #
 #=================================================================================#
 
@@ -39,25 +40,29 @@ function message_green() { $ECHO "$GREEN>$RCOLOR $1";       }
 function message_blue () { $ECHO "$BLUE>$RCOLOR $1";        }
 
 # =================================================================================
-# Func   : user_response
+# Func   : user_responseTF
 # Brief  : Used to display a message and prompt for user input [Y/N]
-# Params : [1] message | [2] default (y|n|Y|N)
+# Params : [1] message
 # Return : 0 if the user chooses Y . 1 if the user chooses N
 #
-function user_response() {
+function user_responseTF() {
+  local ures="$response"
+
+  echo
   while true; do
-    $ECHO -n "$GREEN<$RCOLOR $1 [Y/N]: "
-    if [ "$bypass" = "on" ]; then
-      response="$2"
-      $ECHO "$2"
+    $ECHO -n "\033[1A\033[K$GREEN<$RCOLOR $1 [Y/N]: "
+    if [ ! "$ures" = "" ]; then
+      $ECHO "$ures"
     else
-      read response
+      read ures
     fi
 
-    if   [[ $response =~ ^[Yy]$ ]]; then
+    if   [[ $ures =~ ^[Yy]$ ]]; then
       return 0  #  true
-    elif [[ $response =~ ^[Nn]$ ]]; then
+    elif [[ $ures =~ ^[Nn]$ ]]; then
       return 1  #  false
+    else
+      ures=""
     fi
   done
 }
@@ -81,7 +86,10 @@ function move_project() {
 # Return : /None/
 #
 function run_cmd() {
-  check=0
+  local check=0
+  local time_start=0
+  local time_diff=0
+  local time_end=0
 
   time_start=$(date +%s%N)
   if [ "$1" = "normal" ]; then
@@ -122,17 +130,17 @@ function gen_test_report() {
 
   sed -i "s|\[\[SED_FILE_NAME\]\]|$(basename $REPORT_HTML)|g; s|\[\[SED_REPORT_CCOV\]\]|$1|g; s|\[\[SED_PROJ_NAME\]\]|$(inner_getvar 0 proj_name)|g; s|\[\[SED_USER_NAME\]\]|$(inner_getvar 0 user_name)|g; s|\[\[SED_TIMESTAMP\]\]|$(inner_getvar 0 exe_time)|g; s|\[\[SED_TIME_EXEC\]\]|$(inner_getvar 0 duration)|g; s|\[\[SED_CHECK_STATUS\]\]|$(inner_getvar 0 status)|g" "$REPORT_HTML" &
 
-  buff=""
-  all_test=$(inner_getvar 0 all_test)
+  local buff=""
+  local all_test=$(inner_getvar 0 all_test)
 
   for (( i=1; i<=all_test; i++ )); do
-    test_name=$(inner_getvar $i name)
-    test_brief=$(echo $(inner_getvar $i brief) | sed 's|\\|\\\\|g; s|"|\\"|g; s|\||\\\||g')
-    test_status=$(inner_getvar $i status)
-    test_duration=$(inner_getvar $i duration)
-    test_fail=$(echo $(inner_getvar $i fail) | sed 's|\\|\\\\|g; s|"|\\"|g; s|\||\\\||g')
+    local test_name=$(inner_getvar $i name)
+    local test_brief=$(echo $(inner_getvar $i brief) | sed 's|\\|\\\\|g; s|"|\\"|g; s|\||\\\||g')
+    local test_status=$(inner_getvar $i status)
+    local test_duration=$(inner_getvar $i duration)
+    local test_fail=$(echo $(inner_getvar $i fail) | sed 's|\\|\\\\|g; s|"|\\"|g; s|\||\\\||g')
 
-    buff+='\n    Add_Test("'$test_name'", "'$test_brief'", "'$test_duration'", "'$test_status'", "'$test_fail'");'
+    buff+="\n    Add_Test(\"$test_name\", \"$test_brief\", \"$test_duration\", \"$test_status\", \"$test_fail\");"
   done
   sed -i "s|\s*\[\[SED_ADD_ALL_TEST\]\]|$buff|g" "$REPORT_HTML" &
 }
@@ -159,6 +167,22 @@ function open_report() {
   if [ -e "$2" ] && [ "$SHOW_REPORT" = "on" ]; then
     message_blue "Opening $1 report in browser" &
     $START_EXE "$2" || message_error "Cannot open [$2]"
+  fi
+}
+
+# =================================================================================
+# Func   : check_projname
+# Brief  : Check if the new project name entered is valid
+# Params : /None/
+# Return : 0 if it's valid. 1 if it's invalid
+#
+function check_projname()
+{
+  if ! [[ "$newproj_name" =~ ^[a-zA-Z0-9_/]+$ ]]; then
+    message_error "The project name must satisfy the pattern: [a-zA-Z0-9_/]"
+    return 1  #  false
+  else
+    return 0  #  true
   fi
 }
 
