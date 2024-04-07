@@ -32,12 +32,13 @@ build_start    =  $(build_tmp)
 
 build_end      =  echo; $(call process_end, build) $(eval build_start = $(build_tmp))
 
-build_cmd      =  (echo; echo "$(subst ",\",$(subst \,\\,$(strip $(1))))"; echo) >> $(LOG_FILE) & log=$$($(strip $(1)) 2>&1); \
-                  if ! [ -z "$$log" ]; then (echo INFO; echo "$$log"; echo) | tee -a $(LOG_FILE); fi
+build_cmd      =  log=$$($(strip $(1)) 2>&1); command=$$(echo; echo "$(subst ",\",$(subst \,\\,$(strip $(1))))"; echo); \
+                  if ! [ -z "$$log" ]; then (echo "$$command"; echo; echo INFO; echo "$$log"; echo) >> $(LOG_FILE); \
+                  echo " "; echo "$$log"; echo " "; else echo "$$command" >> $(LOG_FILE); fi
 
-build_process  =  $(build_start) $(call message_green, Compiling from $<) & \
+build_process  =  $(build_start) echo "$$($(call message_green, Compiled $<) & \
                   $(call build_cmd ,$(1) -c $($(strip $(2))) $(MASK_INC_DIRS) -MMD -MP -MF $(@:%.o=%.d) \
-                  $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g) $(if $(filter CCOPTS>$(DEV_DIR)/%,$(2)>$<),$(CCOV_CC)) $< -o $@)
+                  $(if $(filter $(notdir $<),$(SRC_NODEBUG_FILES)),,-g) $(if $(filter CCOPTS>$(DEV_DIR)/%,$(2)>$<),$(CCOV_CC)) $< -o $@))"
 
 convert_path   =  "$(subst \,/,$(patsubst $(strip $(1)).%,%,$@))"
 

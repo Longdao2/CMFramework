@@ -22,6 +22,9 @@ RUN_CCOV := on
 # Show the report to the web browser after it is generated (on/off)
 SHOW_REPORT := off
 
+# Maximum number of parallel processes for compilation
+MAX_PROCESS := 12
+
 #---------------------------------------------------------------------------------#
 #                                Paths and options                                #
 #---------------------------------------------------------------------------------#
