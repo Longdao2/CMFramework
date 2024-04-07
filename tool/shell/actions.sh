@@ -33,6 +33,21 @@ source $SHELL_DIR/apis.sh
 case "$1" in
 
 # =================================================================================
+# Action: info
+# Detail: Print on the screen some information about the project
+#
+info)
+  process_start info
+  echo "Project Name : $PROJ_NAME"
+  echo "User Name    : $USER_NAME"
+  echo "Run Timeout  : $RUN_TIMEOUT"
+  echo "Run CCOV     : $RUN_CCOV"
+  echo "Show Report  : $SHOW_REPORT"
+  echo "See More     : $PROJ_DIR/user_cfg.mk"
+  process_end info
+;;
+
+# =================================================================================
 # Action: clean
 # Detail: Clean all files in project output
 #

@@ -8,6 +8,7 @@
 ====================== MODIFY =====================
 
 + Documentation updates and debugging fixes
++ Allows parallel compilation of multiple processes
 
 ===================== HISTORY =====================
 

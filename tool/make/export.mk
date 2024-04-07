@@ -59,6 +59,7 @@ EXP +=   CCDEFS
 EXP +=   ASDEFS
 EXP +=   EXTERNAL_CONSOLE
 EXP +=   RUN_CCOV
+EXP +=   PROJ_DIR
 EXP +=   response
 
 #---------------------------------------------------------------------------------#

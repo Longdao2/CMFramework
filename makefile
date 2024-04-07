@@ -62,8 +62,16 @@
   LDD_FILE     :=  $(TOOL_DIR)/tmp/$(PROJ_RAW)~ldd
 
 #---------------------------------------------------------------------------------#
+#                                      User                                       #
+#---------------------------------------------------------------------------------#
+
+  include $(PROJ_DIR)/user_cfg.mk
+
+#---------------------------------------------------------------------------------#
 #                                    Validate                                     #
 #---------------------------------------------------------------------------------#
+
+ifeq ($(MAKELEVEL),0)
 
 # Broken if the template project no longer exists
 ifeq ("$(wildcard $(TEMP_DIR)/user_cfg.mk)","")
@@ -85,22 +93,23 @@ endif # MAKECMDGOALS
 
 # Some features are limited on the template project
 ifeq ($(PROJ_NAME), $(TEMP_NAME))
-  override EXC_MAKECMDGOALS := quick force build run debug report %.o $(PROJ_EXE) $(OUT_DIR)
+  override EXC_MAKECMDGOALS := quick force _build run debug report %.o $(PROJ_EXE) $(OUT_DIR)
   ifneq ($(filter $(EXC_MAKECMDGOALS) !w!0, $(MAKECMDGOALS) !w!$(words $(MAKECMDGOALS))),)
     $(error Some features are limited on template project. Please create or move to another project)
   endif
 endif # PROJ_NAME == TEMP_NAME
 
-#---------------------------------------------------------------------------------#
-#                                      User                                       #
-#---------------------------------------------------------------------------------#
+ifeq ($(shell [[ "$(MAX_PROCESS)" -gt 0 ]] &>/dev/null || echo 1), 1)
+  $(error The maximum number of parallel processes must be greater than 0. [MAX_PROCESS = $(MAX_PROCESS)])
+endif # MAX_PROCESS < 1
 
-  include $(PROJ_DIR)/user_cfg.mk
+endif # MAKELEVEL == 0
 
 #---------------------------------------------------------------------------------#
 #                                     Export                                      #
 #---------------------------------------------------------------------------------#
 
+ifeq ($(MAKELEVEL),0)
   include $(TOOL_DIR)/make/export.mk
 
   USER_DEFS := $(sort $(CCDEFS) $(ASDEFS))
@@ -108,6 +117,7 @@ endif # PROJ_NAME == TEMP_NAME
   EXPS := $(sort $(EXP) $(USER_ENVS) $(addprefix DEF,$(USER_DEFS)))
 
   export $(EXPS)
+endif # MAKELEVEL == 0
 
 #---------------------------------------------------------------------------------#
 #                                     Macros                                      #
@@ -140,15 +150,17 @@ endif # PROJ_NAME == TEMP_NAME
 # Parsing file names in the project
   OBJ_NAMES := $(addsuffix .o,$(notdir $(SRC_FILES)))
   OBJ_FILES += $(addprefix $(OUT_DIR)/,$(OBJ_NAMES))
-  OBJ_DUPES := $(shell echo $(OBJ_FILES) $(PROJ_EXE:%.exe=%.o) | tr ' ' '\n' | tr '[:upper:]' '[:lower:]' | sort | uniq -d)
 
-ifneq ($(bypass),on)
-  ifneq ($(OBJ_DUPES),)
-    $(info Some object file names have been detected to duplicated after analysis) $(info ---)
-    $(foreach OBJ_DUPE, $(OBJ_DUPES), $(info $(OBJ_DUPE))) $(info ---)
-    $(error Please check all source files [make bypass=on print.SRC_FILES.OBJ_AVAIS])
-  endif # OBJ_DUPES != ""
-endif # bypass != on
+ifeq ($(MAKELEVEL),0)
+  override OBJ_DUPES := $(shell echo $(OBJ_FILES) $(PROJ_EXE:%.exe=%.o) | tr ' ' '\n' | tr '[:upper:]' '[:lower:]' | sort | uniq -d)
+  ifneq ($(bypass),on)
+    ifneq ($(OBJ_DUPES),)
+      $(info Some object file names have been detected to duplicated after analysis) $(info ---)
+      $(foreach OBJ_DUPE, $(OBJ_DUPES), $(info $(OBJ_DUPE))) $(info ---)
+      $(error Please check all source files [make bypass=on print.SRC_FILES.OBJ_AVAIS])
+    endif # OBJ_DUPES != ""
+  endif # bypass != on
+endif # MAKELEVEL == 0
 
 # Add prefix to the directory containing the header file
   MASK_INC_DIRS := $(addprefix -I,$(INC_DIRS))
@@ -162,12 +174,14 @@ endif # bypass != on
   CCOPTS += $(foreach USER_DEF, $(CCDEFS), $(call usr_define, $(USER_DEF)))
   ASOPTS += $(foreach USER_DEF, $(ASDEFS), $(call usr_define, $(USER_DEF)))
 
-ifneq ($(bypass),on)
-  ifneq ($(words $(CCDEFS) UTEST_SUPPORT) $(words $(ASDEFS)), $(words $(sort $(CCDEFS) UTEST_SUPPORT)) $(words $(sort $(ASDEFS))))
-    $(warning Some duplicate user definitions were detected)
-    $(error Please check all -D flags in the compiler options [make bypass=on print.CCOPTS.ASOPTS])
-  endif
-endif # bypass != on
+ifeq ($(MAKELEVEL),0)
+  ifneq ($(bypass),on)
+    ifneq ($(words $(CCDEFS) UTEST_SUPPORT) $(words $(ASDEFS)), $(words $(sort $(CCDEFS) UTEST_SUPPORT)) $(words $(sort $(ASDEFS))))
+      $(warning Some duplicate user definitions were detected)
+      $(error Please check all -D flags in the compiler options [make bypass=on print.CCOPTS.ASOPTS])
+    endif
+  endif # bypass != on
+endif # MAKELEVEL == 0
 
 # Definitions for the code coverage feature
 ifeq ($(RUN_CCOV), on)
@@ -203,7 +217,7 @@ endif # CC_PATH == ""
           move.% remove.% import.% export.% print.%
 
 # Extension rules (Please do not use them directly)
-  .PHONY: _s_build _check_depend
+  .PHONY: _build _s_build _check_depend
 
   BUILD_CHECK := $(OUT_DIR) _check_depend
   include $(TOOL_DIR)/make/rules.mk
@@ -213,16 +227,17 @@ endif # CC_PATH == ""
 #---------------------------------------------------------------------------------#
 
 ifneq ($(bypass),on)
-  ifneq ($(filter quick build %.o $(PROJ_EXE) !w!0, $(MAKECMDGOALS) !w!$(words $(MAKECMDGOALS))),)
+  ifneq ($(filter _build %.o $(PROJ_EXE), $(MAKECMDGOALS)),)
     -include $(PROJ_EXE:%.exe=%.d)
     SRC_DEPS := $(addprefix $(OUT_DIR)/,$(notdir $(shell echo "$(filter-out $(SRC_FILES), $(SRC_PREV))" | sed 's/\.[^.]*\(\s\|$$\)/.\* /g')))
     SILENT := $(shell $(if $(SRC_DEPS), rm -rf $(SRC_DEPS) $(PROJ_EXE) & ) $(SHELL) $(SHELL_DIR)/actions.sh depend_init)
     -include $(OBJ_FILES:%.o=%.d)
   endif # MAKECMDGOALS
-  $(info )
-else ifneq ($(MAKECMDGOALS),vsinit)
-  $(info )
 endif # bypass != on
+
+ifeq ($(MAKELEVEL),0)
+  $(info )
+endif # MAKELEVEL == 0
 
 #---------------------------------------------------------------------------------#
 #                                   End of file                                   #
