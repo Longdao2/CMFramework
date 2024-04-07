@@ -31,8 +31,6 @@
 
 # Only to be used during the build process
   BUILD_VAL    := 0
-  SRC_PREV     :=
-  CC_PATH      :=
 
 # Base paths (start at Framework folder)
   ROOT_DIR     :=  $(shell [[ "$$OSTYPE" =~ ^(cygwin|msys)$$ ]] && cygpath -m `pwd` || pwd)
@@ -93,7 +91,7 @@ endif # MAKECMDGOALS
 
 # Some features are limited on the template project
 ifeq ($(PROJ_NAME), $(TEMP_NAME))
-  override EXC_MAKECMDGOALS := quick force _build run debug report %.o $(PROJ_EXE) $(OUT_DIR)
+  override EXC_MAKECMDGOALS := quick force build _build run debug report %.o $(PROJ_EXE) $(OUT_DIR)
   ifneq ($(filter $(EXC_MAKECMDGOALS) !w!0, $(MAKECMDGOALS) !w!$(words $(MAKECMDGOALS))),)
     $(error Some features are limited on template project. Please create or move to another project)
   endif
