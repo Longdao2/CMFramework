@@ -33,6 +33,7 @@ extern "C" {
 * @brief Use for debugging purposes. Failed assertions will jump in here
 * @param [in] \p file - \p func - \p line : Stores some information of failure
 */
+__attribute__((unused)) static inline void UT_IsFailure(const char file[], const char func[], int line);
 __attribute__((unused)) static inline void UT_IsFailure(const char file[], const char func[], int line)
 {
     void UT_AddFail(const char[], const char[], int); UT_AddFail(file, func, line);
