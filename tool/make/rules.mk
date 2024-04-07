@@ -35,17 +35,6 @@ setup:
 # Command: [make info]
 # Details: Print on the screen some information about the project
 #
-info:
-	@$(call process_start, info); echo; \
-	echo "Project Name : $(PROJ_NAME)"; \
-	echo "User Name    : $(USER_NAME)"; \
-	echo "Run Timeout  : $(RUN_TIMEOUT)"; \
-	echo "Run CCOV     : $(RUN_CCOV)";  \
-	echo "Show Report  : $(SHOW_REPORT)"; \
-	echo "See More     : $(PROJ_DIR)/user_cfg.mk"; \
-	echo; $(call process_end, info)
-
-# =================================================================================
 # Command: [make clean]
 # Details: Clean all files in project output
 #
@@ -61,27 +50,30 @@ info:
 # Command: [make vsinit]
 # Details: Configure VSCode so that the software links to the correct path
 #
-clean run debug report vsinit:
+clean run debug report vsinit info:
 	@$(SHELL) $(SHELL_DIR)/actions.sh $@
 
 # =================================================================================
 # Command: [make build]
 # Details: Compile all source files in the project and link into an executable
 #
-build: _s_build $(PROJ_EXE)
+build:
+	@$(MAKE) _build -j$(MAX_PROCESS)
+
+_build: _s_build $(PROJ_EXE)
 	@$(if $(filter $(BUILD_VAL), 2), $(SHELL) $(SHELL_DIR)/actions.sh check_build; $(build_end)) $(eval BUILD_VAL := 0)
-
-$(PROJ_EXE): $(OBJ_FILES)
-	@$(build_start) $(call message_green, Linking to $(PROJ_EXE)) & $(call build_cmd, $(LD_EXE) $(LDOPTS) $(CCOV_LD) $(OBJ_FILES) -o $@)
-
-$(OUT_DIR):
-	@$(build_start) $(call message_blue, Adding $@) & mkdir -p $@
 
 _s_build:
 	@$(eval BUILD_VAL := 1)
 
 _check_depend:
 	@$(src_depend) & $(SHELL) $(SHELL_DIR)/actions.sh depend_update
+
+$(PROJ_EXE): $(OBJ_FILES)
+	@$(build_start) $(call message_green, Linking to $(PROJ_EXE)) & $(call build_cmd, $(LD_EXE) $(LDOPTS) $(CCOV_LD) $(OBJ_FILES) -o $@)
+
+$(OUT_DIR):
+	@$(build_start) $(call message_blue, Adding $@) & mkdir -p $@
 
 # =================================================================================
 # Command: [make <src_name>.o]
