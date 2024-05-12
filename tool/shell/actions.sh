@@ -3,8 +3,8 @@
 # File         actions.sh                                                         #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.9                                                              #
-# Release      04-10-2024                                                         #
+# Version      1.1.0                                                              #
+# Release      05-12-2024                                                         #
 # Details      C/C++ project management tool - [SH] Actions                       #
 #=================================================================================#
 
@@ -14,11 +14,6 @@
 
 newproj_name="$2"
 newproj_dir="$BASE_DIR/$newproj_name"
-
-vsc_dir=$ROOT_DIR/.vscode
-ccpp_file=$TOOL_DIR/tmp/tmp1
-launch_file=$TOOL_DIR/tmp/tmp2
-setting_file=$TOOL_DIR/tmp/tmp3
 
 #---------------------------------------------------------------------------------#
 #                                    Includes                                     #
@@ -56,18 +51,18 @@ clean)
   echo "check=abc" > $CHK_FILE &
 
   # Scan the list of existing output to be removed
-  list="$(ls -d $OUT_DIR -f $REPORT_HTML $DOC_DIR/$PROJ_RAW""_ccov.* 2>/dev/null)"
+  list="$(ls -d $OUT_DIR -f $REPORT_HTML $DOC_DIR/${PROJ_RAW}_ccov.* 2>/dev/null)"
 
   # If there is at least one output, the cleanup process will start
   if ! [ "$list" = "" ]; then
-  process_start clean &
+    process_start clean &
 
-  # Print a message and sequentially remove the outputs
-  for path in $list; do
-    message_red "Removing $path" & rm -rf $path &
-  done
+    # Print a message and sequentially remove the outputs
+    for path in $list; do
+      message_red "Removing $path" & rm -rf $path &
+    done
 
-  process_end clean
+    process_end clean
   fi
 ;;
 
@@ -76,9 +71,9 @@ clean)
 # Detail: Check for changes in the dependency list
 #
 depend_init)
-  if [ -f $CCD_FILE ]; then CCD_DATA=`cat $CCD_FILE`; else CCD_DATA=""; fi
-  if [ -f $ASD_FILE ]; then ASD_DATA=`cat $ASD_FILE`; else ASD_DATA=""; fi
-  if [ -f $LDD_FILE ]; then LDD_DATA=`cat $LDD_FILE`; else LDD_DATA=""; fi
+  if [ -f $CCD_FILE ]; then CCD_DATA="$(cat $CCD_FILE)"; else CCD_DATA=""; fi
+  if [ -f $ASD_FILE ]; then ASD_DATA="$(cat $ASD_FILE)"; else ASD_DATA=""; fi
+  if [ -f $LDD_FILE ]; then LDD_DATA="$(cat $LDD_FILE)"; else LDD_DATA=""; fi
 
   check=""
 
@@ -94,7 +89,7 @@ depend_init)
 # Detail: Update the dependency list if it was changed previously
 #
 depend_update)
-  if [ -f $CHK_FILE ]; then check=`cat $CHK_FILE`; else check=abc; fi
+  if [ -f $CHK_FILE ]; then check="$(cat $CHK_FILE)"; else check=abc; fi
 
   if [[ $check =~ a ]]; then
     echo -n "$LIST_CCD" > $CCD_FILE &
@@ -109,7 +104,7 @@ depend_update)
   fi
 
   # Write to the log file information about the timestamp to begin a new build session
-  if [ -e $OUT_DIR ]; then
+  if [ -d $OUT_DIR ]; then
     (echo; echo; date +'========================= '%H:%M:%S' '%Y-%m-%d' ========================='; echo) >> $LOG_FILE
     # Clear previous warnings and errors
     sed -i 's/^\(\([a-z]:\/\|\)[^\\:*?"<>|]\+\.[a-z]\{1,3\}\(:[0-9]\+:[0-9]\+\|\)\):\( \(warning\|error\): \)/\1.\4/gi' $LOG_FILE &
@@ -124,23 +119,23 @@ check_build)
   warns=$(sed -n 's/^\(\([a-z]:\/\|\)[^\\:*?"<>|]\+\.[a-z]\{1,3\}\(:[0-9]\+:[0-9]\+\|\)\):\( warning: \)/&/pgi' $LOG_FILE | wc -l)
   errors=$(sed -n 's/^\(\([a-z]:\/\|\)[^\\:*?"<>|]\+\.[a-z]\{1,3\}\(:[0-9]\+:[0-9]\+\|\)\):\( error: \)/&/pgi' $LOG_FILE | wc -l)
   status=$GREEN"PASS"$RCOLOR
-  wc=""
-  ec=""
+  ws=""
+  es=""
 
   if [ "$warns" -gt 1 ]; then
-    wc="s"
+    ws=s
   fi
 
   if [ "$errors" -gt 0 ]; then
     status=$RED"FAIL"$RCOLOR
     rm -f $OUT_DIR/*.exe $OUT_DIR/*.map &
     if [ "$errors" -gt 1 ]; then
-      ec="s"
+      es=s
     fi
   fi
 
-  message_blue "Summary: $errors Error$ec. $warns Warning$wc. [$status] -> $LOG_FILE" &
-  echo -e "\n>> Summary: $errors Error$ec. $warns Warning$wc\n" >> $LOG_FILE &
+  message_blue "Summary: $errors Error$es. $warns Warning$ws. [$status] -> $LOG_FILE" &
+  echo -e "\n>> Summary: $errors Error$es. $warns Warning$ws\n" >> $LOG_FILE &
 ;;
 
 # =================================================================================
@@ -150,11 +145,11 @@ check_build)
 run)
   process_start run & rm -f $OUT_DIR/*.gcda $REPORT_RAW &
 
-  if [ -e $PROJ_EXE ]; then
+  if [ -f $PROJ_EXE ]; then
     if [ "$DB_SCRIPT" = "" ]; then
       run_cmd normal &
     else
-      if !( [ -e $DB_SCRIPT ] && [[ "$DB_SCRIPT" == *.gdb ]] ); then
+      if !( [ -f $DB_SCRIPT ] && [[ "$DB_SCRIPT" == *.gdb ]] ); then
         message_error "GDB script file does not exist or incorrect format" &
       else
         run_cmd script &
@@ -175,7 +170,7 @@ run)
 debug)
   process_start debug & rm -f $OUT_DIR/*.gcda &
 
-  if [ -e $PROJ_EXE ]; then
+  if [ -f $PROJ_EXE ]; then
     $DB_EXE -q -ex "set args ${VAR_ARGS//\\\\/\\}" $PROJ_EXE || :
   else
     message_error "[$PROJ_EXE] does not exist"
@@ -202,7 +197,7 @@ report)
 
     # Generate report
     # Test report available
-    if [ -e $REPORT_RAW ]; then
+    if [ -f $REPORT_RAW ]; then
       message_green "Generating test report to $REPORT_HTML" &
 
       if [ "$RUN_CCOV" = "on" ]; then
@@ -227,14 +222,33 @@ report)
 ;;
 
 # =================================================================================
+# Action: show_report
+# Detail: Displays the previously generated report file
+#
+show_report)
+  process_start "show report"
+  SHOW_REPORT=on
+
+  if [ -f $REPORT_HTML ]; then
+    open_report "test" "$REPORT_HTML"
+  elif [ -f $CCOV_HTML ]; then
+    open_report "ccov" "$CCOV_HTML"
+  else
+    message_error "No report files found!"
+  fi
+
+  process_end "show report"
+;;
+
+# =================================================================================
 # Action: move
-# Detail: Move to new project (automatically create if it doesn't exist)
+# Detail: Move to new project - automatically create if it doesn't exist
 #
 move)
   process_start move
   if check_projname; then
-    if [ -e "$newproj_dir" ]; then
-      if [ -e "$newproj_dir/user_cfg.mk" ]; then
+    if [ -d "$newproj_dir" ]; then
+      if [ -f "$newproj_dir/user_cfg.mk" ]; then
         if [ "$PROJ_NAME" = "$newproj_name" ]; then
           message_green "You are here!" &
         else
@@ -263,7 +277,7 @@ move)
 remove)
   process_start remove
   if check_projname; then
-    if [ -e "$newproj_dir" ]; then
+    if [ -d "$newproj_dir" ]; then
       if [ "$newproj_name" = "$TEMP_NAME" ]; then
         message_error "Cannot remove template [$TEMP_NAME] project" &
 
@@ -292,8 +306,8 @@ import)
 
   process_start import &
   if check_projname; then
-    if [[ "$zip_file" == *.zip ]] && ls "$zip_file" 1>/dev/null 2>&1; then
-      if [ -e "$newproj_dir" ]; then
+    if [ -f "$zip_file" ] && [[ "$zip_file" == *.zip ]]; then
+      if [ -d "$newproj_dir" ]; then
         message_error "The [$newproj_name] project or group already exist" &
       else
         message_green "Importing into [$newproj_dir]" &
@@ -316,7 +330,7 @@ import)
 export)
   process_start export &
   if check_projname; then
-    if [ -e "$newproj_dir" ]; then
+    if [ -d "$newproj_dir" ]; then
       for f in $(find $newproj_dir -type d -name "$(basename $OUT_DIR)"); do
         message_red "Removing $f" & rm -rf $f &
       done
@@ -339,6 +353,10 @@ export)
 #
 vsinit)
   tab="  ""  ""  ""  "
+  vsc_dir=$ROOT_DIR/.vscode
+  ccpp_file=$TOOL_DIR/tmp/tmp1
+  launch_file=$TOOL_DIR/tmp/tmp2
+  setting_file=$TOOL_DIR/tmp/tmp3
 
   # Create vscode folder
   mkdir -p $vsc_dir &
