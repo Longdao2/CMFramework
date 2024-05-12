@@ -3,8 +3,8 @@
 # File         apis.sh                                                            #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.9                                                              #
-# Release      04-10-2024                                                         #
+# Version      1.1.0                                                              #
+# Release      05-12-2024                                                         #
 # Details      C/C++ project management tool - [SH] Apis                          #
 #=================================================================================#
 
@@ -94,9 +94,9 @@ function run_cmd() {
   time_start=$(date +%s%N)
   if [ "$1" = "normal" ]; then
     eval "array=(${VAR_ARGS})"
-    (timeout --kill-after=0s $RUN_TIMEOUT $PROJ_EXE "${array[@]}") && retval=$? || retval=$?
+    (timeout --kill-after=0s $RUN_TIMEOUT $PROJ_EXE "${array[@]}"); retval=$?
   else
-    (timeout --kill-after=0s $RUN_TIMEOUT $DB_EXE -q -batch -ex "set args $VAR_ARGS" -x $DB_SCRIPT $PROJ_EXE) && retval=$? || retval=$?
+    (timeout --kill-after=0s $RUN_TIMEOUT $DB_EXE -q -batch -ex "set args $VAR_ARGS" -x $DB_SCRIPT $PROJ_EXE); retval=$?
   fi
   time_end=$(date +%s%N)
 
@@ -108,7 +108,7 @@ function run_cmd() {
     check=1
   fi
 
-  if [ -e "$REPORT_RAW" ]; then
+  if [ -f "$REPORT_RAW" ]; then
     $ECHO "0.duration = $time_diff\n0.status = $check" >> $REPORT_RAW &
   fi
 }
@@ -164,7 +164,7 @@ function gen_ccov_report() {
 # Return : /None/
 #
 function open_report() {
-  if [ -e "$2" ] && [ "$SHOW_REPORT" = "on" ]; then
+  if [ -f "$2" ] && [ "$SHOW_REPORT" = "on" ]; then
     message_blue "Opening $1 report in browser" &
     $START_EXE "$2" || message_error "Cannot open [$2]"
   fi
