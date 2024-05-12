@@ -2,8 +2,8 @@
 # File         rules.mk                                                           #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.9                                                              #
-# Release      04-10-2024                                                         #
+# Version      1.1.0                                                              #
+# Release      05-12-2024                                                         #
 # Details      C/C++ project management tool - [MK] Rules                         #
 #=================================================================================#
 
@@ -47,10 +47,13 @@ setup:
 # Command: [make report]
 # Details: Generate test report after running the program
 #
+# Command: [make show_report]
+# Details: Displays the previously generated report file
+#
 # Command: [make vsinit]
 # Details: Configure VSCode so that the software links to the correct path
 #
-clean run debug report vsinit info:
+info clean run debug report show_report vsinit:
 	@$(SHELL) $(SHELL_DIR)/actions.sh $@
 
 # =================================================================================
@@ -111,7 +114,7 @@ $(filter remove.%, $(MAKECMDGOALS)):
 	@$(SHELL) $(SHELL_DIR)/actions.sh remove $(call convert_path, remove)
 
 # =================================================================================
-# Command: [make import.{name} zip=<path/to/zip>
+# Command: [make import.{name} zip=<path/to/zip>]
 # Details: Import a shared project or group from any CMFramework
 #
 $(filter import.%, $(MAKECMDGOALS)):

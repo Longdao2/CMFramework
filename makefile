@@ -2,8 +2,8 @@
 # File         makefile                                                           #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.0.9                                                              #
-# Release      04-10-2024                                                         #
+# Version      1.1.0                                                              #
+# Release      05-12-2024                                                         #
 # Details      C/C++ project management tool - [MK] Main                          #
 #=================================================================================#
 
@@ -211,8 +211,8 @@ endif # CC_PATH == ""
 #---------------------------------------------------------------------------------#
 
 # All rules
-  .PHONY: quick force setup info clean build run debug report vsinit list \
-          move.% remove.% import.% export.% print.%
+  .PHONY: quick force setup info clean build run debug report show_report vsinit \
+          list move.% remove.% import.% export.% print.%
 
 # Extension rules (Please do not use them directly)
   .PHONY: _build _s_build _check_depend
