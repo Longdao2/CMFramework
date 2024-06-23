@@ -2,8 +2,8 @@
 # File         export.mk                                                          #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.1.0                                                              #
-# Release      05-12-2024                                                         #
+# Version      2.0.0                                                              #
+# Release      07-01-2024                                                         #
 # Details      C/C++ project management tool - [MK] Export                        #
 #=================================================================================#
 
@@ -38,10 +38,12 @@ EXP +=   START_EXE
 EXP +=   REPORT_HTML
 EXP +=   CCOV_HTML
 EXP +=   CCD_FILE
+EXP +=   CXD_FILE
 EXP +=   LDD_FILE
 EXP +=   ASD_FILE
 EXP +=   ROOT_DIR
 EXP +=   LIST_CCD
+EXP +=   LIST_CXD
 EXP +=   LIST_LDD
 EXP +=   LIST_ASD
 EXP +=   DB_SCRIPT
@@ -60,6 +62,10 @@ EXP +=   ASDEFS
 EXP +=   EXTERNAL_CONSOLE
 EXP +=   RUN_CCOV
 EXP +=   PROJ_DIR
+EXP +=   LINT_C_H
+EXP +=   LINT_CPP_H
+EXP +=   LINT_INC
+EXP +=   LINT_SIZE
 EXP +=   response
 
 #---------------------------------------------------------------------------------#
