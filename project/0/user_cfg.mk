@@ -1,8 +1,8 @@
 #=================================================================================#
 # File         user_cfg.mk                                                        #
 # Author       ...                                                                #
-# Version      1.1.0                                                              #
-# Release      05-12-2024                                                         #
+# Version      ...                                                                #
+# Release      ...                                                                #
 # Details      Specific config for project                                        #
 #=================================================================================#
 
@@ -22,7 +22,7 @@ RUN_CCOV := off
 # Show the report to the web browser after it is generated (on/off)
 SHOW_REPORT := off
 
-# Maximum number of parallel processes for compilation
+# Maximum number of parallel processes for compilation and static code analysis
 MAX_PROCESS := 12
 
 #---------------------------------------------------------------------------------#
@@ -32,24 +32,39 @@ MAX_PROCESS := 12
 # Declare path to development files here
 DEV_DIR := $(PROJ_DIR)/dev
 
-# Declare all paths to source files (.[c/s/cc/cpp/o]) here
+# Declare all paths to source files here
 SRC_DIRS := $(PROJ_DIR)/src
 
 # Note: any of the files below shall not be in SRC_DIRS
 SRC_FILES := 
 
-# Declare all paths to header files (.[h/hh/hpp]) here
+# Declare all paths to header files here
 INC_DIRS := $(PROJ_DIR)/inc
+
+# Declare all paths to source files for PC-Lint here
+PCL_DIRS := 
+
+# Note: any of the files below shall not be in PCL_DIRS
+PCL_FILES := $(SRC_FILES)
 
 # Add arguments for the executable to run
 VAR_ARGS := 
 
-# Add compiler and linker options
+# Add compiler and linker and PC-Lint options
 CCOPTS := -Og -Wall -Wextra -Wwrite-strings -Wshadow=local -pedantic -fmessage-length=0
 ASOPTS := -Og -Wall
 LDOPTS := -Wl,-Map=$(OUT_DIR)/$(PROJ_RAW).map
+PLOPTS := $(LINT_DIR)/co-mwwin32.lnt # -vo
 
-# User definitions. Will also be applied to the VSCode interface
+# Separate compiler options for C (C_CCOPTS) and C++ (X_CCOPTS)
+C_CCOPTS := 
+X_CCOPTS := 
+
+# Separate PC-Lint options for C (C_PLOPTS) and C++ (X_PLOPTS)
+C_PLOPTS := 
+X_PLOPTS := 
+
+# User definitions. Will also be applied to the VSCode interface and PC-Lint
 CCDEFS := 
 ASDEFS := 
 

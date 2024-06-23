@@ -3,8 +3,8 @@
 # File         actions.sh                                                         #
 # Author       Long Dao                                                           #
 # About        https://louisvn.com                                                #
-# Version      1.1.0                                                              #
-# Release      05-12-2024                                                         #
+# Version      2.0.0                                                              #
+# Release      07-01-2024                                                         #
 # Details      C/C++ project management tool - [SH] Actions                       #
 #=================================================================================#
 
@@ -48,10 +48,10 @@ info)
 #
 clean)
   # Reset the check variables of the dependencies to their defaults
-  echo "check=abc" > $CHK_FILE &
+  rm -f $CHK_FILE &
 
   # Scan the list of existing output to be removed
-  list="$(ls -d $OUT_DIR -f $REPORT_HTML $DOC_DIR/${PROJ_RAW}_ccov.* 2>/dev/null)"
+  list="$(ls -d $OUT_DIR -f $REPORT_HTML $DOC_DIR/${PROJ_RAW}_ccov.* $DOC_DIR/${PROJ_RAW}_analyze.log 2>/dev/null)"
 
   # If there is at least one output, the cleanup process will start
   if ! [ "$list" = "" ]; then
@@ -72,14 +72,18 @@ clean)
 #
 depend_init)
   if [ -f $CCD_FILE ]; then CCD_DATA="$(cat $CCD_FILE)"; else CCD_DATA=""; fi
+  if [ -f $CXD_FILE ]; then CXD_DATA="$(cat $CXD_FILE)"; else CXD_DATA=""; fi
   if [ -f $ASD_FILE ]; then ASD_DATA="$(cat $ASD_FILE)"; else ASD_DATA=""; fi
   if [ -f $LDD_FILE ]; then LDD_DATA="$(cat $LDD_FILE)"; else LDD_DATA=""; fi
 
   check=""
 
-  if ! [ "$CCD_DATA" = "$LIST_CCD" ]; then rm -f $OUT_DIR/*.c.* $OUT_DIR/*.C.* $OUT_DIR/*.cc.* $OUT_DIR/*.cpp.* & check+=a; fi
-  if ! [ "$ASD_DATA" = "$LIST_ASD" ]; then rm -f $OUT_DIR/*.s.* $OUT_DIR/*.S.* & check+=b; fi
-  if ! [ "$LDD_DATA" = "$LIST_LDD" ]; then rm -f $OUT_DIR/*.exe $OUT_DIR/*.map & check+=c; fi
+  if ! [ "$CCD_DATA" = "$LIST_CCD" ]; then rm -f $OUT_DIR/*.c.* & check+=a; fi
+  if ! [ "$CXD_DATA" = "$LIST_CXD" ]; then rm -f $OUT_DIR/*.cc.* $OUT_DIR/*.cp.* $OUT_DIR/*.cxx.* $OUT_DIR/*.cpp.* $OUT_DIR/*.c++.* $OUT_DIR/*.CPP.* $OUT_DIR/*.C.* & check+=b; fi
+  if ! [ "$ASD_DATA" = "$LIST_ASD" ]; then rm -f $OUT_DIR/*.s.* $OUT_DIR/*.S.* & check+=c; fi
+  if ! [ "$LDD_DATA" = "$LIST_LDD" ]; then rm -f $OUT_DIR/*.exe $OUT_DIR/*.map & check+=d; fi
+
+  if [[ $check =~ [ab] ]]; then rm -f $LINT_C_H $LINT_CPP_H $LINT_INC $LINT_SIZE & fi
 
   echo -n "$check" > $CHK_FILE &
 ;;
@@ -89,17 +93,21 @@ depend_init)
 # Detail: Update the dependency list if it was changed previously
 #
 depend_update)
-  if [ -f $CHK_FILE ]; then check="$(cat $CHK_FILE)"; else check=abc; fi
+  if [ -f $CHK_FILE ]; then check="$(cat $CHK_FILE)"; else check=abcd; fi
 
   if [[ $check =~ a ]]; then
     echo -n "$LIST_CCD" > $CCD_FILE &
   fi
 
   if [[ $check =~ b ]]; then
-    echo -n "$LIST_ASD" > $ASD_FILE &
+    echo -n "$LIST_CXD" > $CXD_FILE &
   fi
 
   if [[ $check =~ c ]]; then
+    echo -n "$LIST_ASD" > $ASD_FILE &
+  fi
+
+  if [[ $check =~ d ]]; then
     echo -n "$LIST_LDD" > $LDD_FILE &
   fi
 
@@ -122,16 +130,12 @@ check_build)
   ws=""
   es=""
 
-  if [ "$warns" -gt 1 ]; then
-    ws=s
-  fi
+  if ! [ "$warns" = 1 ]; then ws=s; fi
+  if ! [ "$errors" = 1 ]; then es=s; fi
 
   if [ "$errors" -gt 0 ]; then
     status=$RED"FAIL"$RCOLOR
     rm -f $OUT_DIR/*.exe $OUT_DIR/*.map &
-    if [ "$errors" -gt 1 ]; then
-      es=s
-    fi
   fi
 
   message_blue "Summary: $errors Error$es. $warns Warning$ws. [$status] -> $LOG_FILE" &

@@ -1,8 +1,8 @@
 /**
 * @file     main.h
 * @author   Long Dao [https://louisvn.com]
-* @version  1.1.0
-* @date     05-12-2024
+* @version  2.0.0
+* @date     07-01-2024
 * @brief    Example: Run the tests and measure code coverage
 */
 
@@ -23,10 +23,6 @@ extern "C" {
 /** -----------------------------------------------------------------------
 >>>                                  APIs
 --------------------------------------------------------------------------- */
-FuncTest(EXAMPLE_TC_01);
-FuncTest(EXAMPLE_TC_02);
-FuncTest(EXAMPLE_TC_03);
-FuncTest(EXAMPLE_TC_04);
 
 
 #ifdef __cplusplus
