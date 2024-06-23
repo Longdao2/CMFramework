@@ -1,8 +1,8 @@
 /**
 * @file     main.c
 * @author   Long Dao [https://louisvn.com]
-* @version  1.1.0
-* @date     05-12-2024
+* @version  2.0.0
+* @date     07-01-2024
 * @brief    Example: Run tests with GDB script
 */
 
@@ -10,6 +10,17 @@
 >>>                                Includes
 --------------------------------------------------------------------------- */
 #include "main.h"
+
+/** -----------------------------------------------------------------------
+>>>                               Prototypes
+--------------------------------------------------------------------------- */
+
+/**
+* @brief Used to wait until the interrupt status is cleared
+*/
+static void Wait_Finish( void );
+
+static FuncTest( GDBSCRIPT_TC_01 );
 
 /** -----------------------------------------------------------------------
 >>>                               Definitions
@@ -21,7 +32,7 @@ UT_DEF_E
 /** -----------------------------------------------------------------------
 >>>                                Variables
 --------------------------------------------------------------------------- */
-volatile int INTERRUPT_STATE = 0;
+static volatile int INTERRUPT_STATE = 0;
 
 /** -----------------------------------------------------------------------
 >>>                              Main function
@@ -42,7 +53,7 @@ int main( void )
 /** -----------------------------------------------------------------------
 >>>                              Sub functions
 --------------------------------------------------------------------------- */
-void Wait_Finish( void )
+static void Wait_Finish( void )
 {
     while ( 1 == INTERRUPT_STATE )
     {
@@ -53,7 +64,7 @@ void Wait_Finish( void )
 /** -----------------------------------------------------------------------
 >>>                             Test functions
 --------------------------------------------------------------------------- */
-FuncTest( GDBSCRIPT_TC_01 )
+static FuncTest( GDBSCRIPT_TC_01 )
 {
     /* # 01. The interrupt status is not set. So, it'll pass through */
     UT_Assert( 0 == INTERRUPT_STATE );

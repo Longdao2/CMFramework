@@ -1,8 +1,8 @@
 /**
 * @file     utest.h
 * @author   Long Dao [https://louisvn.com]
-* @version  1.1.0
-* @date     05-12-2024
+* @version  2.0.0
+* @date     07-01-2024
 * @brief    APIs to perform testing
 */
 
@@ -33,10 +33,9 @@ extern "C" {
 * @brief Use for debugging purposes. Failed assertions will jump in here
 * @param [in] \p file - \p func - \p line : Stores some information of failure
 */
-__attribute__((unused)) static inline void UT_IsFailure(const char file[], const char func[], int line);
-__attribute__((unused)) static inline void UT_IsFailure(const char file[], const char func[], int line)
+static inline void UT_IsFailure(const char file[], const char func[], int line)
 {
-    void UT_AddFail(const char[], const char[], int); UT_AddFail(file, func, line);
+    void UT_AddFail(const char file[], const char func[], int line); UT_AddFail(file, func, line);
 }
 
 
@@ -113,7 +112,6 @@ void DU_Init(void);
 void UT_SetId(unsigned int id);
 void UT_SetVar_Str(const char varname[], const char value[]);
 void UT_SetVar_Num(const char varname[], unsigned int value);
-void UT_AddFail(const char file[], const char func[], int line);
 void UT_SetBrief(const char brief[]);
 void DU_Start(void);
 void DU_End(void);
@@ -142,7 +140,7 @@ extern unsigned int __ut_test_checker;
     const unsigned int __ut_all_tests_size = sizeof(__ut_all_tests) / sizeof(__ut_all_tests[0U]); \
     unsigned int __ut_test_checker = 0U; \
     \
-    __attribute__((constructor)) void custom_startup(void) { \
+    static __attribute__((constructor,unused)) void custom_startup(void) { \
         UT_Init(); \
         UT_SetVar_Num("all_test", __ut_all_tests_size); \
         \
